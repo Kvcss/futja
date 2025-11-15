@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "369165234926",
+    "project_id": "futja-b36ca",
+    "storage_bucket": "futja-b36ca.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:369165234926:android:101fd15e91effbbfa2b9ff",
+        "android_client_info": {
+          "package_name": "futja.com.futja_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACpqcBLMnJ-TDzzaqX5h6R0zGK248HLPI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
