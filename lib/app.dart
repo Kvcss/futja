@@ -15,13 +15,52 @@ class MyApp extends StatelessWidget {
       title: 'FutJá',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const _AuthGate(),
+      home: const SplashPage(),
     );
   }
 }
 
-class _AuthGate extends StatelessWidget {
-  const _AuthGate();
+/// SPLASH SCREEN
+class SplashPage extends StatefulWidget {
+  const SplashPage({super.key});
+
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const AuthGate(),
+        ),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Image.asset(
+          'images/futja_logo.png',
+          height: 500,
+          width: 380,
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+}
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
 
   @override
   Widget build(BuildContext context) {
