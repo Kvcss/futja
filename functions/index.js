@@ -98,6 +98,7 @@ exports.notifyUpcomingMatches = onSchedule(
     const messaging = getMessaging();
     const payloads = [];
 
+    // Monta os payloads
     for (const item of messages) {
       const userDoc = await db
         .collection("users")
@@ -157,30 +158,19 @@ exports.notifyUpcomingMatches = onSchedule(
       payloads.length,
     );
 
-    const chunkSize = 500;
-
-    for (let i = 0; i < payloads.length; i += chunkSize) {
-      const chunk = payloads.slice(i, i + chunkSize);
+    for (const payload of payloads) {
       try {
-        const res = await messaging.sendAll(chunk);
+        const res = await messaging.send(payload);
         console.log(
-          "[notifyUpcomingMatches] Lote enviado:",
-          `success=${res.successCount}, failure=${res.failureCount}`,
+          "[notifyUpcomingMatches] Notificação enviada para token:",
+          payload.token,
+          "messageId:",
+          res,
         );
-        if (res.failureCount > 0) {
-          res.responses.forEach((r, idx) => {
-            if (!r.success) {
-              console.error(
-                "[notifyUpcomingMatches] Erro ao enviar para token:",
-                chunk[idx].token,
-                r.error,
-              );
-            }
-          });
-        }
       } catch (err) {
         console.error(
-          "[notifyUpcomingMatches] Erro ao enviar lote de notificações:",
+          "[notifyUpcomingMatches] Erro ao enviar para token:",
+          payload.token,
           err,
         );
       }
