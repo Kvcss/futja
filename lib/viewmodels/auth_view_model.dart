@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../models/app_user.dart';
 import '../services/auth_service.dart';
@@ -24,11 +26,26 @@ class AuthViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   void _onAuthStateChanged(User? firebaseUser) {
-    _user = firebaseUser != null
-        ? AppUser(uid: firebaseUser.uid, email: firebaseUser.email)
-        : null;
+    if (firebaseUser != null) {
+      _user = AppUser(uid: firebaseUser.uid, email: firebaseUser.email);
+      _saveFcmToken(firebaseUser.uid);
+    } else {
+      _user = null;
+    }
     _isLoading = false;
     notifyListeners();
+  }
+
+  Future<void> _saveFcmToken(String uid) async {
+    final messaging = FirebaseMessaging.instance;
+    final token = await messaging.getToken();
+    if (token == null) {
+      return;
+    }
+    final usersRef = FirebaseFirestore.instance.collection('users');
+    await usersRef.doc(uid).set({
+      'fcmTokens': FieldValue.arrayUnion([token]),
+    }, SetOptions(merge: true));
   }
 
   Future<void> signIn(String email, String password) async {

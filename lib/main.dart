@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:provider/provider.dart';
 
 import 'app.dart';
@@ -8,9 +9,15 @@ import 'models/storage_service.dart';
 import 'services/auth_service.dart';
 import 'viewmodels/auth_view_model.dart';
 
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  await FirebaseMessaging.instance.requestPermission();
 
   runApp(
     MultiProvider(
@@ -23,7 +30,6 @@ Future<void> main() async {
             authService: context.read<AuthService>(),
           ),
         ),
-
         Provider<MatchService>(
           create: (_) => MatchService(),
         ),

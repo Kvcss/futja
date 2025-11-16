@@ -29,7 +29,10 @@ class HomePage extends StatelessWidget {
     final matchService = context.read<MatchService>();
 
     return ChangeNotifierProvider(
-      create: (_) => MatchListViewModel(matchService: matchService),
+      create: (_) => MatchListViewModel(
+        matchService: matchService,
+        initialCity: 'São Paulo',
+      ),
       child: const _HomePageContent(),
     );
   }
@@ -56,10 +59,8 @@ class _HomePageContent extends StatelessWidget {
             children: [
               Image.asset(
                 'images/futja_logo_clean.png',
-                // width: 100,
                 height: 150,
               ),
-              //    const SizedBox(width: 10),
               const Text(
                 'FUT JÁ',
                 style: TextStyle(
@@ -71,12 +72,35 @@ class _HomePageContent extends StatelessWidget {
             ],
           ),
           actions: [
-            IconButton(
-              onPressed: () {
+            Builder(
+              builder: (context) {
+                return IconButton(
+                  onPressed: () {
+                    Scaffold.of(context).openEndDrawer();
+                  },
+                  icon: const Icon(Icons.menu_rounded),
+                );
               },
-              icon: const Icon(Icons.menu_rounded),
             ),
           ],
+        ),
+        endDrawer: Drawer(
+          child: SafeArea(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.logout),
+                  title: const Text('Sair'),
+                  onTap: () async {
+                    final authViewModel = context.read<AuthViewModel>();
+                    await authViewModel.signOut();
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          ),
         ),
         body: Column(
           children: [
@@ -111,8 +135,7 @@ class _HomeTabs extends StatelessWidget {
         border: Border.all(color: AppColors.border),
       ),
       child: TabBar(
-        dividerColor:
-        Colors.transparent,
+        dividerColor: Colors.transparent,
         indicator: BoxDecoration(
           color: AppColors.primaryGreen,
           borderRadius: BorderRadius.circular(28),
@@ -132,7 +155,6 @@ class _HomeTabs extends StatelessWidget {
     );
   }
 }
-
 
 class _MatchesTab extends StatelessWidget {
   String _formatDateTime(DateTime dt) {
@@ -222,7 +244,6 @@ class _MatchesTab extends StatelessWidget {
   }
 }
 
-/// CARD de partida (foto + infos)
 class _MatchCard extends StatelessWidget {
   final Match match;
   final String formattedDate;
@@ -292,7 +313,6 @@ class _MatchCard extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Info da partida
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,7 +343,6 @@ class _MatchCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Vagas
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -346,7 +365,6 @@ class _MatchCard extends StatelessWidget {
   }
 }
 
-/// TAB "CRIAR" – formulário na mesma tela
 class _CreateMatchTab extends StatelessWidget {
   final String? userName;
 
@@ -466,7 +484,6 @@ class _CreateMatchFormState extends State<_CreateMatchForm> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cabeçalho "Olá, ...!"
             Row(
               children: [
                 const CircleAvatar(
@@ -496,8 +513,6 @@ class _CreateMatchFormState extends State<_CreateMatchForm> {
               ],
             ),
             const SizedBox(height: 20),
-
-            // Nome da partida
             TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(
@@ -511,8 +526,6 @@ class _CreateMatchFormState extends State<_CreateMatchForm> {
               },
             ),
             const SizedBox(height: 12),
-
-            // Cidade
             DropdownButtonFormField<String>(
               value: _selectedCity,
               decoration: const InputDecoration(
@@ -536,8 +549,6 @@ class _CreateMatchFormState extends State<_CreateMatchForm> {
               },
             ),
             const SizedBox(height: 12),
-
-            // Local
             TextFormField(
               controller: _locationController,
               decoration: const InputDecoration(
@@ -551,8 +562,6 @@ class _CreateMatchFormState extends State<_CreateMatchForm> {
               },
             ),
             const SizedBox(height: 12),
-
-            // Data / hora + vagas
             Row(
               children: [
                 Expanded(
@@ -595,8 +604,6 @@ class _CreateMatchFormState extends State<_CreateMatchForm> {
               ],
             ),
             const SizedBox(height: 12),
-
-            // Nível técnico
             DropdownButtonFormField<String>(
               value: _selectedLevel,
               decoration: const InputDecoration(
@@ -615,8 +622,6 @@ class _CreateMatchFormState extends State<_CreateMatchForm> {
               },
             ),
             const SizedBox(height: 12),
-
-            // Foto
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -658,7 +663,6 @@ class _CreateMatchFormState extends State<_CreateMatchForm> {
               ),
             ),
             const SizedBox(height: 24),
-
             if (vm.errorMessage != null) ...[
               Text(
                 vm.errorMessage!,
@@ -666,7 +670,6 @@ class _CreateMatchFormState extends State<_CreateMatchForm> {
               ),
               const SizedBox(height: 8),
             ],
-
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
