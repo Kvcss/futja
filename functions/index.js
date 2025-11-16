@@ -54,14 +54,26 @@ exports.notifyUpcomingMatches = onSchedule(
       const title = data.title || "Partida de futebol";
       const city = data.city || "";
       const date = data.dateTime.toDate();
-      const hour = date.toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      const hour = date.toLocaleTimeString(
+        "pt-BR",
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+        },
+      );
       const participants = data.participants || [];
 
       console.log(
-        `[notifyUpcomingMatches] Partida ${matchId} - "${title}" em ${city}, horário ${hour}, participantes: ${participants.length}`,
+        "[notifyUpcomingMatches] Partida",
+        matchId,
+        "-",
+        `"${title}"`,
+        "em",
+        city,
+        "horário",
+        hour,
+        "participantes:",
+        participants.length,
       );
 
       participants.forEach((userId) => {
@@ -77,7 +89,8 @@ exports.notifyUpcomingMatches = onSchedule(
 
     if (messages.length === 0) {
       console.log(
-        "[notifyUpcomingMatches] Nenhum participante para notificar nessa janela.",
+        "[notifyUpcomingMatches] Nenhum participante para notificar",
+        "nessa janela.",
       );
       return;
     }
@@ -103,9 +116,11 @@ exports.notifyUpcomingMatches = onSchedule(
       const tokens = userData.fcmTokens || [];
 
       console.log(
-        `[notifyUpcomingMatches] User ${item.userId} possui ${
-          tokens.length
-        } tokens.`,
+        "[notifyUpcomingMatches] User",
+        item.userId,
+        "possui",
+        tokens.length,
+        "tokens.",
       );
 
       tokens.forEach((token) => {
@@ -131,7 +146,8 @@ exports.notifyUpcomingMatches = onSchedule(
 
     if (payloads.length === 0) {
       console.log(
-        "[notifyUpcomingMatches] Nenhum token válido encontrado para enviar notificações.",
+        "[notifyUpcomingMatches] Nenhum token válido encontrado para",
+        "enviar notificações.",
       );
       return;
     }
