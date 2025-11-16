@@ -1,3 +1,4 @@
+// functions/index.js
 const {onSchedule} = require("firebase-functions/v2/scheduler");
 const {initializeApp} = require("firebase-admin/app");
 const {getFirestore, Timestamp} = require("firebase-admin/firestore");
@@ -6,20 +7,44 @@ const {getMessaging} = require("firebase-admin/messaging");
 initializeApp();
 
 exports.notifyUpcomingMatches = onSchedule(
-  "every 5 minutes",
-  async () => {
+  {
+    schedule: "every 5 minutes",
+    timeZone: "America/Sao_Paulo",
+  },
+  async (event) => {
     const db = getFirestore();
     const now = Timestamp.now();
     const oneHourLater = Timestamp.fromMillis(
       now.toMillis() + 60 * 60 * 1000,
     );
 
-    const snapshot = await db
-      .collection("matches")
-      .where("cancelled", "==", false)
-      .where("dateTime", ">=", now)
-      .where("dateTime", "<=", oneHourLater)
-      .get();
+    console.log(
+      "[notifyUpcomingMatches] Rodando em:",
+      now.toDate().toISOString(),
+      "até",
+      oneHourLater.toDate().toISOString(),
+    );
+
+    let snapshot;
+    try {
+      snapshot = await db
+        .collection("matches")
+        .where("cancelled", "==", false)
+        .where("dateTime", ">=", now)
+        .where("dateTime", "<=", oneHourLater)
+        .get();
+    } catch (err) {
+      console.error(
+        "[notifyUpcomingMatches] Erro na query de partidas:",
+        err,
+      );
+      return;
+    }
+
+    console.log(
+      "[notifyUpcomingMatches] Partidas encontradas na janela:",
+      snapshot.size,
+    );
 
     const messages = [];
 
@@ -35,6 +60,10 @@ exports.notifyUpcomingMatches = onSchedule(
       });
       const participants = data.participants || [];
 
+      console.log(
+        `[notifyUpcomingMatches] Partida ${matchId} - "${title}" em ${city}, horário ${hour}, participantes: ${participants.length}`,
+      );
+
       participants.forEach((userId) => {
         messages.push({
           matchId,
@@ -47,6 +76,9 @@ exports.notifyUpcomingMatches = onSchedule(
     });
 
     if (messages.length === 0) {
+      console.log(
+        "[notifyUpcomingMatches] Nenhum participante para notificar nessa janela.",
+      );
       return;
     }
 
@@ -60,11 +92,21 @@ exports.notifyUpcomingMatches = onSchedule(
         .get();
 
       if (!userDoc.exists) {
+        console.warn(
+          "[notifyUpcomingMatches] Usuário não encontrado:",
+          item.userId,
+        );
         continue;
       }
 
       const userData = userDoc.data() || {};
       const tokens = userData.fcmTokens || [];
+
+      console.log(
+        `[notifyUpcomingMatches] User ${item.userId} possui ${
+          tokens.length
+        } tokens.`,
+      );
 
       tokens.forEach((token) => {
         let bodyText;
@@ -88,14 +130,44 @@ exports.notifyUpcomingMatches = onSchedule(
     }
 
     if (payloads.length === 0) {
+      console.log(
+        "[notifyUpcomingMatches] Nenhum token válido encontrado para enviar notificações.",
+      );
       return;
     }
+
+    console.log(
+      "[notifyUpcomingMatches] Enviando total de payloads:",
+      payloads.length,
+    );
 
     const chunkSize = 500;
 
     for (let i = 0; i < payloads.length; i += chunkSize) {
       const chunk = payloads.slice(i, i + chunkSize);
-      await messaging.sendAll(chunk);
+      try {
+        const res = await messaging.sendAll(chunk);
+        console.log(
+          "[notifyUpcomingMatches] Lote enviado:",
+          `success=${res.successCount}, failure=${res.failureCount}`,
+        );
+        if (res.failureCount > 0) {
+          res.responses.forEach((r, idx) => {
+            if (!r.success) {
+              console.error(
+                "[notifyUpcomingMatches] Erro ao enviar para token:",
+                chunk[idx].token,
+                r.error,
+              );
+            }
+          });
+        }
+      } catch (err) {
+        console.error(
+          "[notifyUpcomingMatches] Erro ao enviar lote de notificações:",
+          err,
+        );
+      }
     }
   },
 );

@@ -1,3 +1,4 @@
+// lib/viewmodels/auth_view_model.dart
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -40,12 +41,20 @@ class AuthViewModel extends ChangeNotifier {
     final messaging = FirebaseMessaging.instance;
     final token = await messaging.getToken();
     if (token == null) {
+      if (kDebugMode) {
+        print('[_saveFcmToken] Token FCM null, não será salvo.');
+      }
       return;
     }
+
     final usersRef = FirebaseFirestore.instance.collection('users');
     await usersRef.doc(uid).set({
       'fcmTokens': FieldValue.arrayUnion([token]),
     }, SetOptions(merge: true));
+
+    if (kDebugMode) {
+      print('[_saveFcmToken] Token salvo para user $uid: $token');
+    }
   }
 
   Future<void> signIn(String email, String password) async {
