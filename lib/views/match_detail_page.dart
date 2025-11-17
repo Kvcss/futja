@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../models/match.dart';
 import '../models/match_service.dart';
+import '../models/user_profile.dart';
+import '../services/profile_service.dart';
 import '../viewmodels/auth_view_model.dart';
 
 class MatchDetailPage extends StatelessWidget {
@@ -75,16 +76,15 @@ class MatchDetailPage extends StatelessWidget {
               'Jogadores confirmados (${match.participants.length}):',
               style: Theme.of(context).textTheme.titleSmall,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
+
             if (match.participants.isEmpty)
               const Text('Nenhum jogador confirmado ainda.')
             else
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: match.participants
-                    .map((p) => Text('- $p'))
-                    .toList(),
+              _ParticipantsCarousel(
+                participantIds: match.participants,
               ),
+
             const SizedBox(height: 24),
             if (user == null)
               const Text(
@@ -113,11 +113,13 @@ class MatchDetailPage extends StatelessWidget {
                                 'Tem certeza que deseja cancelar esta partida?'),
                             actions: [
                               TextButton(
-                                onPressed: () => Navigator.of(ctx).pop(false),
+                                onPressed: () =>
+                                    Navigator.of(ctx).pop(false),
                                 child: const Text('Não'),
                               ),
                               TextButton(
-                                onPressed: () => Navigator.of(ctx).pop(true),
+                                onPressed: () =>
+                                    Navigator.of(ctx).pop(true),
                                 child: const Text('Sim'),
                               ),
                             ],
@@ -179,7 +181,9 @@ class MatchDetailPage extends StatelessWidget {
                         }
                       },
                       child: Text(
-                        isParticipant ? 'Cancelar presença' : 'Confirmar presença',
+                        isParticipant
+                            ? 'Cancelar presença'
+                            : 'Confirmar presença',
                       ),
                     ),
                   ),
@@ -187,6 +191,86 @@ class MatchDetailPage extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ParticipantsCarousel extends StatelessWidget {
+  final List<String> participantIds;
+
+  const _ParticipantsCarousel({
+    required this.participantIds,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final profileService = context.read<ProfileService>();
+
+    return FutureBuilder<List<UserProfile>>(
+      future: profileService.getProfilesForUids(participantIds),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 8.0),
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return const Text(
+            'Erro ao carregar jogadores.',
+            style: TextStyle(color: Colors.red),
+          );
+        }
+
+        final profiles = snapshot.data ?? [];
+
+        if (profiles.isEmpty) {
+          // Fallback: se ainda não tiver perfil salvo, mostra IDs
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: participantIds.map((id) => Text('- $id')).toList(),
+          );
+        }
+
+        return SizedBox(
+          height: 110,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: profiles.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final p = profiles[index];
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundImage: p.photoUrl != null
+                        ? NetworkImage(p.photoUrl!)
+                        : null,
+                    child: p.photoUrl == null
+                        ? const Icon(Icons.person_outline)
+                        : null,
+                  ),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    width: 80,
+                    child: Text(
+                      p.displayName ?? p.email ?? 'Jogador',
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

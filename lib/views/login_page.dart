@@ -63,7 +63,7 @@ class _LoginPageState extends State<LoginPage> {
                         children: [
                           Image.asset(
                             'images/futja_logo_clean.png',
-                            width: 80,
+                            width: 120,
                           ),
                           const SizedBox(height: 8),
                           const Text(

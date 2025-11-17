@@ -12,6 +12,7 @@ import '../viewmodels/auth_view_model.dart';
 import '../viewmodels/match_form_view_model.dart';
 import '../viewmodels/match_list_view_model.dart';
 import 'match_detail_page.dart';
+import 'profile_page.dart'; // <--- NOVO IMPORT
 
 const _cities = <String>[
   'Campinas',
@@ -89,6 +90,20 @@ class _HomePageContent extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
+                // NOVO: opção de Perfil
+                ListTile(
+                  leading: const Icon(Icons.person),
+                  title: const Text('Perfil'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ProfilePage(),
+                      ),
+                    );
+                  },
+                ),
+                // Já existia: Sair
                 ListTile(
                   leading: const Icon(Icons.logout),
                   title: const Text('Sair'),
@@ -178,9 +193,7 @@ class _MatchesTab extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: DropdownButtonFormField<String>(
             value: matchViewModel.selectedCity,
-            decoration: const InputDecoration(
-              labelText: 'Selecione a cidade',
-            ),
+            isExpanded: true, // <--- EVITA TEXTO CORTADO
             items: _cities
                 .map(
                   (c) => DropdownMenuItem(
@@ -528,6 +541,7 @@ class _CreateMatchFormState extends State<_CreateMatchForm> {
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _selectedCity,
+              isExpanded: true, // <--- EVITA TEXTO CORTADO AQUI TAMBÉM
               decoration: const InputDecoration(
                 labelText: 'Cidade',
               ),
@@ -682,8 +696,8 @@ class _CreateMatchFormState extends State<_CreateMatchForm> {
                   if (_selectedDateTime == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content:
-                        Text('Selecione a data e horário do jogo.'),
+                        content: Text(
+                            'Selecione a data e horário do jogo.'),
                       ),
                     );
                     return;
@@ -695,7 +709,8 @@ class _CreateMatchFormState extends State<_CreateMatchForm> {
                   final ok = await vm.createMatch(
                     title: _titleController.text.trim(),
                     city: _selectedCity!,
-                    locationName: _locationController.text.trim(),
+                    locationName:
+                    _locationController.text.trim(),
                     dateTime: _selectedDateTime!,
                     level: _selectedLevel,
                     maxPlayers: maxPlayers,
@@ -709,7 +724,8 @@ class _CreateMatchFormState extends State<_CreateMatchForm> {
                   if (ok) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Partida criada com sucesso!'),
+                        content:
+                        Text('Partida criada com sucesso!'),
                       ),
                     );
                     _formKey.currentState?.reset();
