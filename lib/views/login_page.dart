@@ -62,24 +62,15 @@ class _LoginPageState extends State<LoginPage> {
                       child: Column(
                         children: [
                           Image.asset(
-                            'images/futja_logo_clean.png',
-                            width: 120,
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'FUT JÁ',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.4,
-                            ),
+                            'images/futja_logo.png',
+                            height: 300,
+                            width: 380,
+                            fit: BoxFit.contain,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32),
 
-                    // TÍTULO / SUBTÍTULO
                     Text(
                       'SEJA BEM-VINDO!',
                       style: const TextStyle(
@@ -206,7 +197,6 @@ class _LoginPageState extends State<LoginPage> {
 
                     OutlinedButton.icon(
                       onPressed: () {
-                        // TODO: implementar login com Google depois
                       },
                       icon: const Icon(Icons.g_mobiledata, size: 28),
                       label: const Text('Entrar com o Google'),
