@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -61,7 +62,13 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
   }
 
   Future<void> _pickPhoto(ProfileViewModel vm) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 20,
+      maxWidth: 600,
+      maxHeight: 600,
+    );
+
     if (picked != null) {
       vm.setPendingPhoto(File(picked.path));
     }
@@ -82,23 +89,30 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
 
     final profile = vm.profile;
     final currentPhotoFile = vm.pendingPhotoFile;
+    final photoBase64 = profile?.photoBase64;
     final photoUrl = profile?.photoUrl;
 
     Widget avatar;
+
     if (currentPhotoFile != null) {
       avatar = CircleAvatar(
-        radius: 40,
+        radius: 44,
         backgroundImage: FileImage(currentPhotoFile),
       );
-    } else if (photoUrl != null) {
+    } else if (photoBase64 != null && photoBase64.trim().isNotEmpty) {
       avatar = CircleAvatar(
-        radius: 40,
+        radius: 44,
+        backgroundImage: MemoryImage(base64Decode(photoBase64)),
+      );
+    } else if (photoUrl != null && photoUrl.trim().isNotEmpty) {
+      avatar = CircleAvatar(
+        radius: 44,
         backgroundImage: NetworkImage(photoUrl),
       );
     } else {
       avatar = const CircleAvatar(
-        radius: 40,
-        child: Icon(Icons.person_outline, size: 32),
+        radius: 44,
+        child: Icon(Icons.person_outline, size: 34),
       );
     }
 
@@ -119,7 +133,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
                 children: [
                   avatar,
                   Container(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(6),
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       color: AppColors.primaryGreen,
@@ -133,7 +147,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(

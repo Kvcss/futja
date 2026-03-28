@@ -1,7 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 
 import '../models/user_profile.dart';
 
@@ -22,13 +22,10 @@ abstract class IProfileService {
 
 class ProfileService implements IProfileService {
   final FirebaseFirestore _firestore;
-  final FirebaseStorage _storage;
 
   ProfileService({
     FirebaseFirestore? firestore,
-    FirebaseStorage? storage,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _storage = storage ?? FirebaseStorage.instance;
+  }) : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> get _usersRef =>
       _firestore.collection('users');
@@ -49,12 +46,18 @@ class ProfileService implements IProfileService {
     double? weight,
     File? photoFile,
   }) async {
-    String? photoUrl;
+    String? photoBase64;
 
     if (photoFile != null) {
-      final ref = _storage.ref().child('users').child(uid).child('avatar.jpg');
-      await ref.putFile(photoFile);
-      photoUrl = await ref.getDownloadURL();
+      final bytes = await photoFile.readAsBytes();
+
+      if (bytes.length > 350 * 1024) {
+        throw Exception(
+          'A foto ficou muito grande. Escolha uma imagem menor.',
+        );
+      }
+
+      photoBase64 = base64Encode(bytes);
     }
 
     final data = <String, dynamic>{
@@ -63,7 +66,7 @@ class ProfileService implements IProfileService {
       if (position != null && position.isNotEmpty) 'position': position,
       'age': age,
       'weight': weight,
-      if (photoUrl != null) 'photoUrl': photoUrl,
+      if (photoBase64 != null) 'photoBase64': photoBase64,
     };
 
     await _usersRef.doc(uid).set(data, SetOptions(merge: true));
@@ -79,9 +82,21 @@ class ProfileService implements IProfileService {
     final futures = uids.map((uid) => _usersRef.doc(uid).get());
     final docs = await Future.wait(futures);
 
-    return docs
-        .where((doc) => doc.exists)
-        .map(UserProfile.fromDocument)
-        .toList();
+    final profiles = <UserProfile>[];
+
+    for (final doc in docs) {
+      if (doc.exists) {
+        profiles.add(UserProfile.fromDocument(doc));
+      } else {
+        profiles.add(
+          UserProfile(
+            uid: doc.id,
+            displayName: 'Jogador',
+          ),
+        );
+      }
+    }
+
+    return profiles;
   }
 }

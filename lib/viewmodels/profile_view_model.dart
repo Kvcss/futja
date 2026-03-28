@@ -33,7 +33,7 @@ class ProfileViewModel extends ChangeNotifier {
 
     try {
       _profile = await profileService.getProfile(uid);
-    } catch (_) {
+    } catch (e) {
       _errorMessage = 'Erro ao carregar perfil.';
     } finally {
       _isLoading = false;
@@ -66,8 +66,11 @@ class ProfileViewModel extends ChangeNotifier {
         photoFile: _pendingPhotoFile,
       );
       _pendingPhotoFile = null;
-    } catch (_) {
-      _errorMessage = 'Erro ao salvar perfil.';
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      if (_errorMessage == null || _errorMessage!.trim().isEmpty) {
+        _errorMessage = 'Erro ao salvar perfil.';
+      }
     } finally {
       _isSaving = false;
       notifyListeners();

@@ -155,7 +155,8 @@ class MatchDetailPage extends StatelessWidget {
                         _InfoRow(
                           icon: Icons.people_alt_outlined,
                           title: 'Vagas',
-                          value: '${match.spotsLeft}/${match.maxPlayers} disponíveis',
+                          value:
+                          '${match.spotsLeft}/${match.maxPlayers} disponíveis',
                         ),
                         const Divider(height: 24),
                         _InfoRow(
@@ -168,7 +169,8 @@ class MatchDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   _SectionCard(
-                    title: 'Jogadores confirmados (${match.participants.length})',
+                    title:
+                    'Jogadores confirmados (${match.participants.length})',
                     child: match.participants.isEmpty
                         ? const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8),
@@ -343,9 +345,7 @@ class _DetailHeaderImage extends StatelessWidget {
       return Image.memory(
         base64Decode(imageBase64!),
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
-          return _fallback();
-        },
+        errorBuilder: (_, __, ___) => _fallback(),
       );
     }
 
@@ -364,9 +364,7 @@ class _DetailHeaderImage extends StatelessWidget {
             ),
           );
         },
-        errorBuilder: (_, __, ___) {
-          return _fallback();
-        },
+        errorBuilder: (_, __, ___) => _fallback(),
       );
     }
 
@@ -585,28 +583,6 @@ class _ParticipantsCarousel extends StatelessWidget {
 
         final profiles = snapshot.data ?? [];
 
-        if (profiles.isEmpty) {
-          return Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: participantIds
-                .map(
-                  (id) => Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF4F6F8),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(id),
-              ),
-            )
-                .toList(),
-          );
-        }
-
         return SizedBox(
           height: 108,
           child: ListView.separated(
@@ -616,8 +592,20 @@ class _ParticipantsCarousel extends StatelessWidget {
             itemBuilder: (context, index) {
               final profile = profiles[index];
 
+              ImageProvider? imageProvider;
+
+              if (profile.photoBase64 != null &&
+                  profile.photoBase64!.trim().isNotEmpty) {
+                imageProvider = MemoryImage(
+                  base64Decode(profile.photoBase64!),
+                );
+              } else if (profile.photoUrl != null &&
+                  profile.photoUrl!.trim().isNotEmpty) {
+                imageProvider = NetworkImage(profile.photoUrl!);
+              }
+
               return Container(
-                width: 92,
+                width: 100,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 8,
                   vertical: 10,
@@ -632,16 +620,14 @@ class _ParticipantsCarousel extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundImage: profile.photoUrl != null
-                          ? NetworkImage(profile.photoUrl!)
-                          : null,
-                      child: profile.photoUrl == null
+                      backgroundImage: imageProvider,
+                      child: imageProvider == null
                           ? const Icon(Icons.person_outline)
                           : null,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      profile.displayName ?? profile.email ?? 'Jogador',
+                      profile.displayLabel,
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

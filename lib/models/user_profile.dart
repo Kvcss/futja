@@ -7,6 +7,7 @@ class UserProfile {
   final int? age;
   final double? weight;
   final String? photoUrl;
+  final String? photoBase64;
   final String? email;
 
   UserProfile({
@@ -16,8 +17,21 @@ class UserProfile {
     this.age,
     this.weight,
     this.photoUrl,
+    this.photoBase64,
     this.email,
   });
+
+  String get displayLabel {
+    if (displayName != null && displayName!.trim().isNotEmpty) {
+      return displayName!;
+    }
+
+    if (email != null && email!.trim().isNotEmpty) {
+      return email!.split('@').first;
+    }
+
+    return 'Jogador';
+  }
 
   factory UserProfile.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
@@ -29,6 +43,7 @@ class UserProfile {
       age: (data['age'] as num?)?.toInt(),
       weight: (data['weight'] as num?)?.toDouble(),
       photoUrl: data['photoUrl'] as String?,
+      photoBase64: data['photoBase64'] as String?,
       email: data['email'] as String?,
     );
   }
