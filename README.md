@@ -5,13 +5,11 @@
 
 ---
 
-## 📌 Informações da Entrega
+## 📌 Informações
 
 - **Aluno:** [SEU_NOME]
 - **Repositório GitHub:** [COLE_AQUI_O_LINK_DO_GITHUB]
 - **Vídeo demonstrativo no YouTube:** [COLE_AQUI_O_LINK_DO_VIDEO_YOUTUBE]
-
-> Observação: caso o repositório esteja privado, ele deve ser compartilhado com o usuário **mjoselli**, conforme solicitado no enunciado do trabalho.
 
 ---
 
@@ -23,7 +21,6 @@
 - [Telas do aplicativo](#-telas-do-aplicativo)
 - [Arquitetura e tecnologias](#-arquitetura-e-tecnologias)
 - [Estrutura de pastas](#-estrutura-de-pastas)
-- [Como os requisitos do trabalho foram atendidos](#-como-os-requisitos-do-trabalho-foram-atendidos)
 - [Design Patterns utilizados](#-design-patterns-utilizados)
 - [Injeção de Dependência](#-injeção-de-dependência)
 - [Testes unitários](#-testes-unitários)
@@ -56,14 +53,6 @@ O principal objetivo do aplicativo é oferecer uma experiência simples e funcio
 - facilitar a busca por partidas disponíveis por cidade;
 - permitir a entrada e saída de participantes de forma dinâmica;
 - disponibilizar uma estrutura preparada para notificações push com Firebase Cloud Messaging.
-
-Além do objetivo funcional, o projeto também foi desenvolvido para atender aos requisitos acadêmicos de:
-- arquitetura de software;
-- clean code;
-- design patterns;
-- dependency injection;
-- testes unitários;
-- interface funcional com múltiplas telas.
 
 ---
 
@@ -127,7 +116,7 @@ Além do objetivo funcional, o projeto também foi desenvolvido para atender aos
 
 ## 📱 Telas do aplicativo
 
-O aplicativo possui mais de 3 telas funcionais, atendendo ao requisito do trabalho.
+O aplicativo possui múltiplas telas funcionais para diferentes fluxos de uso.
 
 ### 1. Splash Screen
 Tela inicial exibida ao abrir o aplicativo.
