@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../core/date_time_formatter.dart';
 import '../models/match.dart';
 import '../models/match_service.dart';
 import '../models/user_profile.dart';
@@ -18,20 +20,11 @@ class MatchDetailPage extends StatelessWidget {
     required this.isParticipant,
   });
 
-  String _formatDateTime(DateTime dt) {
-    final dd = dt.day.toString().padLeft(2, '0');
-    final mm = dt.month.toString().padLeft(2, '0');
-    final hh = dt.hour.toString().padLeft(2, '0');
-    final min = dt.minute.toString().padLeft(2, '0');
-    return '$dd/$mm às $hh:$min';
-  }
-
   @override
   Widget build(BuildContext context) {
     final authVm = context.watch<AuthViewModel>();
     final user = authVm.user;
-    final matchService = context.read<MatchService>();
-
+    final matchService = context.read<IMatchService>();
     final isPast = match.isPast;
 
     return Scaffold(
@@ -59,13 +52,11 @@ class MatchDetailPage extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
-            Text('Quando: ${_formatDateTime(match.dateTime)}'),
+            Text('Quando: ${AppDateTimeFormatter.shortDateTime(match.dateTime)}'),
             const SizedBox(height: 4),
             Text('Nível: ${match.level}'),
             const SizedBox(height: 4),
-            Text(
-              'Vagas: ${match.spotsLeft}/${match.maxPlayers}',
-            ),
+            Text('Vagas: ${match.spotsLeft}/${match.maxPlayers}'),
             const SizedBox(height: 8),
             Text(
               'Organizador: ${match.organizerName ?? match.organizerId}',
@@ -77,14 +68,12 @@ class MatchDetailPage extends StatelessWidget {
               style: Theme.of(context).textTheme.titleSmall,
             ),
             const SizedBox(height: 8),
-
             if (match.participants.isEmpty)
               const Text('Nenhum jogador confirmado ainda.')
             else
               _ParticipantsCarousel(
                 participantIds: match.participants,
               ),
-
             const SizedBox(height: 24),
             if (user == null)
               const Text(
@@ -110,16 +99,15 @@ class MatchDetailPage extends StatelessWidget {
                           builder: (ctx) => AlertDialog(
                             title: const Text('Cancelar partida'),
                             content: const Text(
-                                'Tem certeza que deseja cancelar esta partida?'),
+                              'Tem certeza que deseja cancelar esta partida?',
+                            ),
                             actions: [
                               TextButton(
-                                onPressed: () =>
-                                    Navigator.of(ctx).pop(false),
+                                onPressed: () => Navigator.of(ctx).pop(false),
                                 child: const Text('Não'),
                               ),
                               TextButton(
-                                onPressed: () =>
-                                    Navigator.of(ctx).pop(true),
+                                onPressed: () => Navigator.of(ctx).pop(true),
                                 child: const Text('Sim'),
                               ),
                             ],
@@ -133,15 +121,14 @@ class MatchDetailPage extends StatelessWidget {
                             matchId: match.id,
                             organizerId: user.uid,
                           );
+
                           if (context.mounted) {
                             Navigator.of(context).pop();
                           }
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(e.toString()),
-                              ),
+                              SnackBar(content: Text(e.toString())),
                             );
                           }
                         }
@@ -167,15 +154,14 @@ class MatchDetailPage extends StatelessWidget {
                               userId: user.uid,
                             );
                           }
+
                           if (context.mounted) {
                             Navigator.of(context).pop();
                           }
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(e.toString()),
-                              ),
+                              SnackBar(content: Text(e.toString())),
                             );
                           }
                         }
@@ -204,14 +190,14 @@ class _ParticipantsCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profileService = context.read<ProfileService>();
+    final profileService = context.read<IProfileService>();
 
     return FutureBuilder<List<UserProfile>>(
       future: profileService.getProfilesForUids(participantIds),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 8.0),
+            padding: EdgeInsets.symmetric(vertical: 8),
             child: CircularProgressIndicator(),
           );
         }
@@ -226,7 +212,6 @@ class _ParticipantsCarousel extends StatelessWidget {
         final profiles = snapshot.data ?? [];
 
         if (profiles.isEmpty) {
-          // Fallback: se ainda não tiver perfil salvo, mostra IDs
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: participantIds.map((id) => Text('- $id')).toList(),
@@ -240,17 +225,17 @@ class _ParticipantsCarousel extends StatelessWidget {
             itemCount: profiles.length,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
-              final p = profiles[index];
+              final profile = profiles[index];
 
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundImage: p.photoUrl != null
-                        ? NetworkImage(p.photoUrl!)
+                    backgroundImage: profile.photoUrl != null
+                        ? NetworkImage(profile.photoUrl!)
                         : null,
-                    child: p.photoUrl == null
+                    child: profile.photoUrl == null
                         ? const Icon(Icons.person_outline)
                         : null,
                   ),
@@ -258,7 +243,7 @@ class _ParticipantsCarousel extends StatelessWidget {
                   SizedBox(
                     width: 80,
                     child: Text(
-                      p.displayName ?? p.email ?? 'Jogador',
+                      profile.displayName ?? profile.email ?? 'Jogador',
                       textAlign: TextAlign.center,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

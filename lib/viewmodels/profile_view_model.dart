@@ -1,18 +1,18 @@
-
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
+
 import '../models/user_profile.dart';
 import '../services/profile_service.dart';
 
 class ProfileViewModel extends ChangeNotifier {
-  final ProfileService profileService;
+  final IProfileService profileService;
   final String uid;
 
   UserProfile? _profile;
   bool _isLoading = true;
   bool _isSaving = false;
   String? _errorMessage;
-
   File? _pendingPhotoFile;
 
   ProfileViewModel({
@@ -24,7 +24,6 @@ class ProfileViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isSaving => _isSaving;
   String? get errorMessage => _errorMessage;
-
   File? get pendingPhotoFile => _pendingPhotoFile;
 
   Future<void> loadProfile() async {
@@ -34,7 +33,7 @@ class ProfileViewModel extends ChangeNotifier {
 
     try {
       _profile = await profileService.getProfile(uid);
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Erro ao carregar perfil.';
     } finally {
       _isLoading = false;
@@ -67,7 +66,7 @@ class ProfileViewModel extends ChangeNotifier {
         photoFile: _pendingPhotoFile,
       );
       _pendingPhotoFile = null;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Erro ao salvar perfil.';
     } finally {
       _isSaving = false;

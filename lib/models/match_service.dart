@@ -1,6 +1,33 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class MatchService {
+import 'match.dart';
+
+abstract class IMatchService {
+  String newMatchId();
+
+  Future<void> createMatch(Match match);
+
+  Stream<List<Match>> watchMatches({
+    String? city,
+  });
+
+  Future<void> joinMatch({
+    required String matchId,
+    required String userId,
+  });
+
+  Future<void> leaveMatch({
+    required String matchId,
+    required String userId,
+  });
+
+  Future<void> cancelMatch({
+    required String matchId,
+    required String organizerId,
+  });
+}
+
+class MatchService implements IMatchService {
   final FirebaseFirestore _firestore;
 
   MatchService({FirebaseFirestore? firestore})
@@ -9,38 +36,43 @@ class MatchService {
   CollectionReference<Map<String, dynamic>> get _matchesRef =>
       _firestore.collection('matches');
 
-  /// Gera um novo id de partida (sem gravar ainda)
+  @override
   String newMatchId() {
     return _matchesRef.doc().id;
   }
 
-  /// Cria partida já com id definido
-  Future<void> createMatchWithId(Map<String, dynamic> data, String matchId) {
-    return _matchesRef.doc(matchId).set(data);
+  @override
+  Future<void> createMatch(Match match) {
+    return _matchesRef.doc(match.id).set(match.toMap());
   }
 
-  /// Stream de partidas, filtrando por cidade (se informado) e só futuras/não canceladas
-  Stream<List<QueryDocumentSnapshot<Map<String, dynamic>>>> watchMatchDocs({
+  @override
+  Stream<List<Match>> watchMatches({
     String? city,
   }) {
     final now = DateTime.now();
 
-    Query<Map<String, dynamic>> query = _matchesRef
+    final query = _matchesRef
         .where(
       'dateTime',
-      isGreaterThanOrEqualTo:
-      Timestamp.fromDate(DateTime(now.year, now.month, now.day)),
+      isGreaterThanOrEqualTo: Timestamp.fromDate(
+        DateTime(now.year, now.month, now.day),
+      ),
     )
-        .where('cancelled', isEqualTo: false)
         .orderBy('dateTime');
 
-    if (city != null && city.isNotEmpty) {
-      query = query.where('city', isEqualTo: city);
-    }
+    return query.snapshots().map((snapshot) {
+      final matches = snapshot.docs.map(Match.fromDocument).toList();
 
-    return query.snapshots().map((snapshot) => snapshot.docs);
+      return matches.where((match) {
+        final matchesCity = city == null || city.isEmpty || match.city == city;
+        final isActive = !match.cancelled;
+        return matchesCity && isActive;
+      }).toList();
+    });
   }
 
+  @override
   Future<void> joinMatch({
     required String matchId,
     required String userId,
@@ -57,7 +89,7 @@ class MatchService {
       final maxPlayers = (data['maxPlayers'] as num?)?.toInt() ?? 10;
 
       if (participants.contains(userId)) {
-        return; // já está
+        return;
       }
 
       if (participants.length >= maxPlayers) {
@@ -70,6 +102,7 @@ class MatchService {
     });
   }
 
+  @override
   Future<void> leaveMatch({
     required String matchId,
     required String userId,
@@ -79,6 +112,7 @@ class MatchService {
     });
   }
 
+  @override
   Future<void> cancelMatch({
     required String matchId,
     required String organizerId,

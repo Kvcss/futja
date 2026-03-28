@@ -6,21 +6,20 @@ import '../models/match.dart';
 import '../models/match_service.dart';
 import '../models/storage_service.dart';
 
-
 class MatchFormViewModel extends ChangeNotifier {
-  final MatchService matchService;
-  final StorageService storageService;
+  final IMatchService matchService;
+  final IStorageService storageService;
 
   bool _isSaving = false;
   String? _errorMessage;
-
-  bool get isSaving => _isSaving;
-  String? get errorMessage => _errorMessage;
 
   MatchFormViewModel({
     required this.matchService,
     required this.storageService,
   });
+
+  bool get isSaving => _isSaving;
+  String? get errorMessage => _errorMessage;
 
   Future<bool> createMatch({
     required String title,
@@ -56,19 +55,18 @@ class MatchFormViewModel extends ChangeNotifier {
         organizerId: organizerId,
         organizerName: organizerName,
         imageUrl: imageUrl,
-        participants: [],
+        participants: const [],
       );
 
-      await matchService.createMatchWithId(match.toMap(), matchId);
+      await matchService.createMatch(match);
 
-      _isSaving = false;
-      notifyListeners();
       return true;
-    } catch (e) {
+    } catch (_) {
       _errorMessage = 'Erro ao criar partida. Tente novamente.';
+      return false;
+    } finally {
       _isSaving = false;
       notifyListeners();
-      return false;
     }
   }
 }

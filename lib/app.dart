@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+
+import 'core/app_constants.dart';
 import 'core/app_theme.dart';
 import 'viewmodels/auth_view_model.dart';
-import 'views/login_page.dart';
 import 'views/home_page.dart';
+import 'views/login_page.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -20,7 +22,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// SPLASH SCREEN
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
 
@@ -33,7 +34,7 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
 
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(AppConstants.splashDuration, () {
       if (!mounted) return;
 
       Navigator.of(context).pushReplacement(
@@ -74,8 +75,8 @@ class AuthGate extends StatelessWidget {
 
     if (authViewModel.user == null) {
       return const LoginPage();
-    } else {
-      return const HomePage();
     }
+
+    return const HomePage();
   }
 }

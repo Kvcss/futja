@@ -1,33 +1,30 @@
-// lib/main.dart
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:futja_app/services/profile_service.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'app.dart';
 import 'models/match_service.dart';
 import 'models/storage_service.dart';
 import 'services/auth_service.dart';
+import 'services/profile_service.dart';
 import 'viewmodels/auth_view_model.dart';
 
-/// Handler para mensagens em BACKGROUND (quando o app está fechado/minimizado)
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  print(
+  debugPrint(
     'BG MESSAGE -> title: ${message.notification?.title}, '
         'body: ${message.notification?.body}, data: ${message.data}',
   );
 }
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await Firebase.initializeApp();
+Future<void> _configureFirebaseMessaging() async {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
   final messaging = FirebaseMessaging.instance;
+
   await messaging.requestPermission(
     alert: true,
     badge: true,
@@ -35,16 +32,12 @@ Future<void> main() async {
   );
 
   if (Platform.isIOS) {
-    await FirebaseMessaging.instance
-        .setForegroundNotificationPresentationOptions(
+    await messaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
     );
   }
-
-  final token = await messaging.getToken();
-  print('FCM TOKEN ATUAL: $token');
 
   final initialMessage = await messaging.getInitialMessage();
   if (initialMessage != null) {
@@ -66,26 +59,32 @@ Future<void> main() async {
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
     debugPrint('Usuário clicou na notificação (BACKGROUND): ${message.data}');
   });
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  await _configureFirebaseMessaging();
 
   runApp(
     MultiProvider(
       providers: [
-        Provider<AuthService>(
+        Provider<IAuthService>(
           create: (_) => AuthService(),
+        ),
+        Provider<IMatchService>(
+          create: (_) => MatchService(),
+        ),
+        Provider<IStorageService>(
+          create: (_) => StorageService(),
+        ),
+        Provider<IProfileService>(
+          create: (_) => ProfileService(),
         ),
         ChangeNotifierProvider<AuthViewModel>(
           create: (context) => AuthViewModel(
-            authService: context.read<AuthService>(),
+            authService: context.read<IAuthService>(),
           ),
-        ),
-        Provider<MatchService>(
-          create: (_) => MatchService(),
-        ),
-        Provider<StorageService>(
-          create: (_) => StorageService(),
-        ),
-        Provider<ProfileService>(
-          create: (_) => ProfileService(),
         ),
       ],
       child: const MyApp(),

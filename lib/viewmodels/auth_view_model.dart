@@ -1,60 +1,45 @@
-// lib/viewmodels/auth_view_model.dart
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 
+import '../core/auth_error_mapper.dart';
 import '../models/app_user.dart';
 import '../services/auth_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
-  final AuthService authService;
+  final IAuthService authService;
 
   AppUser? _user;
   bool _isLoading = true;
   String? _errorMessage;
   StreamSubscription<User?>? _authSubscription;
 
-  AuthViewModel({required this.authService}) {
-    _authSubscription =
-        authService.authStateChanges.listen(_onAuthStateChanged);
+  AuthViewModel({
+    required this.authService,
+  }) {
+    _authSubscription = authService.authStateChanges.listen((firebaseUser) {
+      _handleAuthStateChanged(firebaseUser);
+    });
   }
 
   AppUser? get user => _user;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  void _onAuthStateChanged(User? firebaseUser) {
+  Future<void> _handleAuthStateChanged(User? firebaseUser) async {
     if (firebaseUser != null) {
-      _user = AppUser(uid: firebaseUser.uid, email: firebaseUser.email);
-      _saveFcmToken(firebaseUser.uid);
+      _user = AppUser(
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+      );
+      await authService.saveFcmToken(firebaseUser.uid);
     } else {
       _user = null;
     }
+
     _isLoading = false;
     notifyListeners();
-  }
-
-  Future<void> _saveFcmToken(String uid) async {
-    final messaging = FirebaseMessaging.instance;
-    final token = await messaging.getToken();
-    if (token == null) {
-      if (kDebugMode) {
-        print('[_saveFcmToken] Token FCM null, não será salvo.');
-      }
-      return;
-    }
-
-    final usersRef = FirebaseFirestore.instance.collection('users');
-    await usersRef.doc(uid).set({
-      'fcmTokens': FieldValue.arrayUnion([token]),
-    }, SetOptions(merge: true));
-
-    if (kDebugMode) {
-      print('[_saveFcmToken] Token salvo para user $uid: $token');
-    }
   }
 
   Future<void> signIn(String email, String password) async {
@@ -63,14 +48,20 @@ class AuthViewModel extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      final firebaseUser =
-      await authService.signInWithEmailAndPassword(email, password);
+      final firebaseUser = await authService.signInWithEmailAndPassword(
+        email,
+        password,
+      );
 
       if (firebaseUser != null) {
-        _user = AppUser(uid: firebaseUser.uid, email: firebaseUser.email);
+        _user = AppUser(
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+        );
+        await authService.saveFcmToken(firebaseUser.uid);
       }
     } on FirebaseAuthException catch (e) {
-      _errorMessage = _mapErrorCodeToMessage(e.code);
+      _errorMessage = AuthErrorMapper.map(e.code);
     } catch (_) {
       _errorMessage = 'Erro inesperado. Tente novamente.';
     } finally {
@@ -85,14 +76,20 @@ class AuthViewModel extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      final firebaseUser =
-      await authService.registerWithEmailAndPassword(email, password);
+      final firebaseUser = await authService.registerWithEmailAndPassword(
+        email,
+        password,
+      );
 
       if (firebaseUser != null) {
-        _user = AppUser(uid: firebaseUser.uid, email: firebaseUser.email);
+        _user = AppUser(
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+        );
+        await authService.saveFcmToken(firebaseUser.uid);
       }
     } on FirebaseAuthException catch (e) {
-      _errorMessage = _mapErrorCodeToMessage(e.code);
+      _errorMessage = AuthErrorMapper.map(e.code);
     } catch (_) {
       _errorMessage = 'Erro inesperado. Tente novamente.';
     } finally {
@@ -102,26 +99,8 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    _errorMessage = null;
     await authService.signOut();
-  }
-
-  String _mapErrorCodeToMessage(String code) {
-    switch (code) {
-      case 'user-not-found':
-        return 'Usuário não encontrado.';
-      case 'wrong-password':
-        return 'Senha incorreta.';
-      case 'invalid-email':
-        return 'E-mail inválido.';
-      case 'user-disabled':
-        return 'Usuário desativado.';
-      case 'email-already-in-use':
-        return 'Já existe uma conta com esse e-mail.';
-      case 'weak-password':
-        return 'Senha muito fraca.';
-      default:
-        return 'Falha na autenticação. Tente novamente.';
-    }
   }
 
   @override

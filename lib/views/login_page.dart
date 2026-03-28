@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/app_theme.dart';
+import '../core/form_validators.dart';
 import '../viewmodels/auth_view_model.dart';
 
 class LoginPage extends StatefulWidget {
@@ -15,6 +16,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
   bool _isRegisterMode = false;
   bool _obscurePassword = true;
 
@@ -29,7 +31,6 @@ class _LoginPageState extends State<LoginPage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final authViewModel = context.read<AuthViewModel>();
-
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -57,23 +58,17 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // LOGO
                     Center(
-                      child: Column(
-                        children: [
-                          Image.asset(
-                            'images/futja_logo.png',
-                            height: 300,
-                            width: 380,
-                            fit: BoxFit.contain,
-                          ),
-                        ],
+                      child: Image.asset(
+                        'images/futja_logo.png',
+                        height: 300,
+                        width: 380,
+                        fit: BoxFit.contain,
                       ),
                     ),
-
-                    Text(
+                    const Text(
                       'SEJA BEM-VINDO!',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                       ),
@@ -89,8 +84,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // EMAIL
                     TextFormField(
                       controller: _emailController,
                       decoration: const InputDecoration(
@@ -98,19 +91,9 @@ class _LoginPageState extends State<LoginPage> {
                         prefixIcon: Icon(Icons.mail_outline),
                       ),
                       keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Informe o e-mail';
-                        }
-                        if (!value.contains('@')) {
-                          return 'E-mail inválido';
-                        }
-                        return null;
-                      },
+                      validator: FormValidators.validateEmail,
                     ),
                     const SizedBox(height: 16),
-
-                    // SENHA
                     TextFormField(
                       controller: _passwordController,
                       decoration: InputDecoration(
@@ -130,18 +113,9 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       obscureText: _obscurePassword,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Informe a senha';
-                        }
-                        if (value.length < 6) {
-                          return 'A senha deve ter pelo menos 6 caracteres';
-                        }
-                        return null;
-                      },
+                      validator: FormValidators.validatePassword,
                     ),
                     const SizedBox(height: 24),
-
                     if (authViewModel.errorMessage != null) ...[
                       Text(
                         authViewModel.errorMessage!,
@@ -149,8 +123,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 8),
                     ],
-
-                    // BOTÃO ENTRAR / CADASTRAR
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -168,8 +140,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 16),
-
-                    // DIVISOR "OU"
                     Row(
                       children: const [
                         Expanded(
@@ -179,7 +149,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8.0),
+                          padding: EdgeInsets.symmetric(horizontal: 8),
                           child: Text(
                             'ou',
                             style: TextStyle(color: AppColors.greyText),
@@ -194,15 +164,18 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                     const SizedBox(height: 16),
-
                     OutlinedButton.icon(
                       onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Login com Google em desenvolvimento.'),
+                          ),
+                        );
                       },
                       icon: const Icon(Icons.g_mobiledata, size: 28),
                       label: const Text('Entrar com o Google'),
                     ),
                     const SizedBox(height: 24),
-
                     Column(
                       children: [
                         const Text(

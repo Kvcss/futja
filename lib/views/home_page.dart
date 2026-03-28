@@ -1,33 +1,25 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../core/app_constants.dart';
 import '../core/app_theme.dart';
+import '../core/date_time_formatter.dart';
 import '../models/match.dart';
 import '../models/match_service.dart';
 import '../models/storage_service.dart';
 import '../viewmodels/auth_view_model.dart';
 import '../viewmodels/match_form_view_model.dart';
 import '../viewmodels/match_list_view_model.dart';
+import '../widgets/match_form_widget.dart';
 import 'match_detail_page.dart';
-import 'profile_page.dart'; // <--- NOVO IMPORT
-
-const _cities = <String>[
-  'Campinas',
-  'São Paulo',
-  'Rio de Janeiro',
-  'Belo Horizonte',
-  'Curitiba',
-];
+import 'profile_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final matchService = context.read<MatchService>();
+    final matchService = context.read<IMatchService>();
 
     return ChangeNotifierProvider(
       create: (_) => MatchListViewModel(
@@ -76,9 +68,7 @@ class _HomePageContent extends StatelessWidget {
             Builder(
               builder: (context) {
                 return IconButton(
-                  onPressed: () {
-                    Scaffold.of(context).openEndDrawer();
-                  },
+                  onPressed: () => Scaffold.of(context).openEndDrawer(),
                   icon: const Icon(Icons.menu_rounded),
                 );
               },
@@ -90,7 +80,6 @@ class _HomePageContent extends StatelessWidget {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                // NOVO: opção de Perfil
                 ListTile(
                   leading: const Icon(Icons.person),
                   title: const Text('Perfil'),
@@ -103,14 +92,14 @@ class _HomePageContent extends StatelessWidget {
                     );
                   },
                 ),
-                // Já existia: Sair
                 ListTile(
                   leading: const Icon(Icons.logout),
                   title: const Text('Sair'),
                   onTap: () async {
-                    final authViewModel = context.read<AuthViewModel>();
-                    await authViewModel.signOut();
-                    Navigator.of(context).pop();
+                    await context.read<AuthViewModel>().signOut();
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                    }
                   },
                 ),
               ],
@@ -128,8 +117,8 @@ class _HomePageContent extends StatelessWidget {
             Expanded(
               child: TabBarView(
                 children: [
-                  _MatchesTab(),
-                  _CreateMatchTab(userName: user?.email),
+                  const _MatchesTab(),
+                  _CreateMatchTab(userEmail: user?.email),
                 ],
               ),
             ),
@@ -141,6 +130,8 @@ class _HomePageContent extends StatelessWidget {
 }
 
 class _HomeTabs extends StatelessWidget {
+  const _HomeTabs();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -172,19 +163,12 @@ class _HomeTabs extends StatelessWidget {
 }
 
 class _MatchesTab extends StatelessWidget {
-  String _formatDateTime(DateTime dt) {
-    final dd = dt.day.toString().padLeft(2, '0');
-    final mm = dt.month.toString().padLeft(2, '0');
-    final hh = dt.hour.toString().padLeft(2, '0');
-    final min = dt.minute.toString().padLeft(2, '0');
-    return '$dd/$mm às $hh:$min';
-  }
+  const _MatchesTab();
 
   @override
   Widget build(BuildContext context) {
     final authViewModel = context.watch<AuthViewModel>();
     final matchViewModel = context.watch<MatchListViewModel>();
-
     final user = authViewModel.user;
 
     return Column(
@@ -193,16 +177,16 @@ class _MatchesTab extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: DropdownButtonFormField<String>(
             value: matchViewModel.selectedCity,
-            isExpanded: true, // <--- EVITA TEXTO CORTADO
-            items: _cities
+            isExpanded: true,
+            items: AppConstants.cities
                 .map(
-                  (c) => DropdownMenuItem(
-                value: c,
-                child: Text(c),
+                  (city) => DropdownMenuItem(
+                value: city,
+                child: Text(city),
               ),
             )
                 .toList(),
-            onChanged: (value) => matchViewModel.setCity(value),
+            onChanged: matchViewModel.setCity,
           ),
         ),
         const SizedBox(height: 16),
@@ -229,21 +213,22 @@ class _MatchesTab extends StatelessWidget {
               }
 
               return ListView.builder(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 itemCount: matchViewModel.matches.length,
                 itemBuilder: (context, index) {
                   final match = matchViewModel.matches[index];
-                  final formattedDate = _formatDateTime(match.dateTime);
-
-                  final isOrganizer =
-                      user != null && user.uid == match.organizerId;
+                  final isOrganizer = user != null && user.uid == match.organizerId;
                   final isParticipant =
                       user != null && match.participants.contains(user.uid);
 
                   return _MatchCard(
                     match: match,
-                    formattedDate: formattedDate,
+                    formattedDate: AppDateTimeFormatter.shortDateTime(
+                      match.dateTime,
+                    ),
                     isOrganizer: isOrganizer,
                     isParticipant: isParticipant,
                   );
@@ -312,17 +297,17 @@ class _MatchCard extends StatelessWidget {
                 child: const Center(
                   child: Text(
                     'Foto do local',
-                    style: TextStyle(
-                      color: AppColors.greyText,
-                    ),
+                    style: TextStyle(color: AppColors.greyText),
                   ),
                 ),
               ),
             ),
             const Divider(height: 1, color: AppColors.border),
             Padding(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 10,
+              ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -356,18 +341,13 @@ class _MatchCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Vagas: ${match.spotsLeft}/${match.maxPlayers}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  )
+                  Text(
+                    'Vagas: ${match.spotsLeft}/${match.maxPlayers}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -379,9 +359,9 @@ class _MatchCard extends StatelessWidget {
 }
 
 class _CreateMatchTab extends StatelessWidget {
-  final String? userName;
+  final String? userEmail;
 
-  const _CreateMatchTab({this.userName});
+  const _CreateMatchTab({this.userEmail});
 
   @override
   Widget build(BuildContext context) {
@@ -394,365 +374,35 @@ class _CreateMatchTab extends StatelessWidget {
       );
     }
 
-    final matchService = context.read<MatchService>();
-    final storageService = context.read<StorageService>();
-
     return ChangeNotifierProvider(
       create: (_) => MatchFormViewModel(
-        matchService: matchService,
-        storageService: storageService,
+        matchService: context.read<IMatchService>(),
+        storageService: context.read<IStorageService>(),
       ),
-      child: _CreateMatchForm(
-        displayName: userName ?? user.email ?? 'Jogador',
-        userId: user.uid,
-        userEmail: user.email,
-      ),
-    );
-  }
-}
-
-class _CreateMatchForm extends StatefulWidget {
-  final String displayName;
-  final String userId;
-  final String? userEmail;
-
-  const _CreateMatchForm({
-    required this.displayName,
-    required this.userId,
-    required this.userEmail,
-  });
-
-  @override
-  State<_CreateMatchForm> createState() => _CreateMatchFormState();
-}
-
-class _CreateMatchFormState extends State<_CreateMatchForm> {
-  final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _locationController = TextEditingController();
-  final _maxPlayersController = TextEditingController(text: '10');
-
-  String? _selectedCity;
-  String _selectedLevel = 'intermediário';
-  DateTime? _selectedDateTime;
-  File? _selectedImage;
-
-  final _picker = ImagePicker();
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _locationController.dispose();
-    _maxPlayersController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImage() async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery);
-    if (picked != null) {
-      setState(() {
-        _selectedImage = File(picked.path);
-      });
-    }
-  }
-
-  Future<void> _pickDateTime() async {
-    final now = DateTime.now();
-
-    final date = await showDatePicker(
-      context: context,
-      initialDate: now,
-      firstDate: now,
-      lastDate: DateTime(now.year + 1),
-    );
-
-    if (date == null) return;
-
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(now.add(const Duration(hours: 1))),
-    );
-
-    if (time == null) return;
-
-    setState(() {
-      _selectedDateTime = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final vm = context.watch<MatchFormViewModel>();
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const CircleAvatar(
-                  radius: 20,
-                  child: Icon(Icons.person_outline),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Olá, ${widget.displayName.split('@').first}!',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const Text(
-                      'Bora jogar',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.greyText,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            TextFormField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Nome da partida',
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Informe o nome da partida';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: _selectedCity,
-              isExpanded: true, // <--- EVITA TEXTO CORTADO AQUI TAMBÉM
-              decoration: const InputDecoration(
-                labelText: 'Cidade',
-              ),
-              items: _cities
-                  .map(
-                    (c) => DropdownMenuItem(value: c, child: Text(c)),
-              )
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedCity = value;
-                });
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Selecione a cidade';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _locationController,
-              decoration: const InputDecoration(
-                labelText: 'Local (quadra, lote, clube...)',
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Informe o local';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: OutlinedButton.icon(
-                    onPressed: _pickDateTime,
-                    icon: const Icon(Icons.calendar_today_outlined),
-                    label: Text(
-                      _selectedDateTime == null
-                          ? 'Data / Hora'
-                          : '${_selectedDateTime!.day.toString().padLeft(2, '0')}/'
-                          '${_selectedDateTime!.month.toString().padLeft(2, '0')} '
-                          'às '
-                          '${_selectedDateTime!.hour.toString().padLeft(2, '0')}:'
-                          '${_selectedDateTime!.minute.toString().padLeft(2, '0')}',
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: TextFormField(
-                    controller: _maxPlayersController,
-                    decoration: const InputDecoration(
-                      labelText: 'Número de vagas',
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Informe as vagas';
-                      }
-                      final n = int.tryParse(value);
-                      if (n == null || n <= 0) {
-                        return 'Número inválido';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: _selectedLevel,
-              decoration: const InputDecoration(
-                labelText: 'Nível técnico',
-              ),
-              items: const [
-                DropdownMenuItem(value: 'iniciante', child: Text('Iniciante')),
-                DropdownMenuItem(
-                    value: 'intermediário', child: Text('Intermediário')),
-                DropdownMenuItem(value: 'avançado', child: Text('Avançado')),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  _selectedLevel = value ?? 'intermediário';
-                });
-              },
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Row(
-                children: [
-                  if (_selectedImage != null)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(
-                        _selectedImage!,
-                        width: 70,
-                        height: 70,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  else
-                    Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.image_outlined,
-                        color: AppColors.greyText,
-                      ),
-                    ),
-                  const SizedBox(width: 12),
-                  TextButton.icon(
-                    onPressed: _pickImage,
-                    icon: const Icon(Icons.photo_library_outlined),
-                    label: const Text('Foto do local'),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            if (vm.errorMessage != null) ...[
-              Text(
-                vm.errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
-              const SizedBox(height: 8),
-            ],
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: vm.isSaving
-                    ? null
-                    : () async {
-                  if (!(_formKey.currentState?.validate() ?? false)) {
-                    return;
-                  }
-                  if (_selectedDateTime == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                            'Selecione a data e horário do jogo.'),
-                      ),
-                    );
-                    return;
-                  }
-
-                  final maxPlayers =
-                  int.parse(_maxPlayersController.text);
-
-                  final ok = await vm.createMatch(
-                    title: _titleController.text.trim(),
-                    city: _selectedCity!,
-                    locationName:
-                    _locationController.text.trim(),
-                    dateTime: _selectedDateTime!,
-                    level: _selectedLevel,
-                    maxPlayers: maxPlayers,
-                    organizerId: widget.userId,
-                    organizerName: widget.userEmail,
-                    imageFile: _selectedImage,
-                  );
-
-                  if (!mounted) return;
-
-                  if (ok) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                        Text('Partida criada com sucesso!'),
-                      ),
-                    );
-                    _formKey.currentState?.reset();
-                    setState(() {
-                      _selectedCity = null;
-                      _selectedDateTime = null;
-                      _selectedImage = null;
-                      _selectedLevel = 'intermediário';
-                      _maxPlayersController.text = '10';
-                    });
-                  }
-                },
-                child: vm.isSaving
-                    ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-                    : const Text('Criar partida'),
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-        ),
+      child: Consumer<MatchFormViewModel>(
+        builder: (context, vm, _) {
+          return MatchFormWidget(
+            greetingName: userEmail ?? user.email ?? 'Jogador',
+            isSaving: vm.isSaving,
+            errorMessage: vm.errorMessage,
+            submitLabel: 'Criar partida',
+            successMessage: 'Partida criada com sucesso!',
+            resetAfterSuccess: true,
+            onSubmit: (formData) {
+              return vm.createMatch(
+                title: formData.title,
+                city: formData.city,
+                locationName: formData.locationName,
+                dateTime: formData.dateTime,
+                level: formData.level,
+                maxPlayers: formData.maxPlayers,
+                organizerId: user.uid,
+                organizerName: user.email,
+                imageFile: formData.imageFile,
+              );
+            },
+          );
+        },
       ),
     );
   }

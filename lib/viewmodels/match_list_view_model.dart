@@ -1,21 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/match.dart';
 import '../models/match_service.dart';
 
-
 class MatchListViewModel extends ChangeNotifier {
-  final MatchService matchService;
+  final IMatchService matchService;
 
   List<Match> _matches = [];
   bool _isLoading = true;
   String? _errorMessage;
   String? _selectedCity;
-  StreamSubscription<List<QueryDocumentSnapshot<Map<String, dynamic>>>>?
-  _subscription;
+  StreamSubscription<List<Match>>? _subscription;
 
   MatchListViewModel({
     required this.matchService,
@@ -35,17 +32,18 @@ class MatchListViewModel extends ChangeNotifier {
     notifyListeners();
 
     _subscription?.cancel();
-    _subscription = matchService
-        .watchMatchDocs(city: _selectedCity)
-        .listen((docs) {
-      _matches = docs.map((doc) => Match.fromDocument(doc)).toList();
-      _isLoading = false;
-      notifyListeners();
-    }, onError: (e) {
-      _errorMessage = 'Erro ao carregar partidas.';
-      _isLoading = false;
-      notifyListeners();
-    });
+    _subscription = matchService.watchMatches(city: _selectedCity).listen(
+          (matches) {
+        _matches = matches;
+        _isLoading = false;
+        notifyListeners();
+      },
+      onError: (_) {
+        _errorMessage = 'Erro ao carregar partidas.';
+        _isLoading = false;
+        notifyListeners();
+      },
+    );
   }
 
   void setCity(String? city) {
@@ -55,7 +53,9 @@ class MatchListViewModel extends ChangeNotifier {
 
   Future<void> joinMatch(String matchId, String userId) async {
     try {
+      _errorMessage = null;
       await matchService.joinMatch(matchId: matchId, userId: userId);
+      notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();
@@ -64,7 +64,9 @@ class MatchListViewModel extends ChangeNotifier {
 
   Future<void> leaveMatch(String matchId, String userId) async {
     try {
+      _errorMessage = null;
       await matchService.leaveMatch(matchId: matchId, userId: userId);
+      notifyListeners();
     } catch (e) {
       _errorMessage = e.toString();
       notifyListeners();

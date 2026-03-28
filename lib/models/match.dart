@@ -36,7 +36,8 @@ class Match {
   bool get isPast => dateTime.isBefore(DateTime.now());
 
   factory Match.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data()!;
+    final data = doc.data() ?? {};
+
     return Match(
       id: doc.id,
       title: data['title'] as String? ?? 'Partida',
@@ -48,10 +49,9 @@ class Match {
       maxPlayers: (data['maxPlayers'] as num?)?.toInt() ?? 10,
       organizerId: data['organizerId'] as String? ?? '',
       organizerName: data['organizerName'] as String?,
-      participants: (data['participants'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-          [],
+      participants: (data['participants'] as List<dynamic>? ?? [])
+          .map((e) => e as String)
+          .toList(),
       cancelled: data['cancelled'] as bool? ?? false,
     );
   }

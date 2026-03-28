@@ -1,9 +1,10 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../core/app_theme.dart';
 
+import '../core/app_theme.dart';
 import '../services/profile_service.dart';
 import '../viewmodels/auth_view_model.dart';
 import '../viewmodels/profile_view_model.dart';
@@ -24,11 +25,9 @@ class ProfilePage extends StatelessWidget {
       );
     }
 
-    final profileService = context.read<ProfileService>();
-
     return ChangeNotifierProvider(
       create: (_) => ProfileViewModel(
-        profileService: profileService,
+        profileService: context.read<IProfileService>(),
         uid: user.uid,
       )..loadProfile(),
       child: const _ProfilePageContent(),
@@ -73,11 +72,11 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
     final vm = context.watch<ProfileViewModel>();
 
     if (!_initializedFromVm && !vm.isLoading) {
-      final p = vm.profile;
-      _nameController.text = p?.displayName ?? '';
-      _positionController.text = p?.position ?? '';
-      _ageController.text = p?.age?.toString() ?? '';
-      _weightController.text = p?.weight?.toString() ?? '';
+      final profile = vm.profile;
+      _nameController.text = profile?.displayName ?? '';
+      _positionController.text = profile?.position ?? '';
+      _ageController.text = profile?.age?.toString() ?? '';
+      _weightController.text = profile?.weight?.toString() ?? '';
       _initializedFromVm = true;
     }
 
@@ -162,8 +161,9 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
               decoration: const InputDecoration(
                 labelText: 'Peso (kg)',
               ),
-              keyboardType:
-              const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
             ),
             const SizedBox(height: 24),
             if (vm.errorMessage != null) ...[
@@ -183,8 +183,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
                   double? weight;
 
                   if (_ageController.text.trim().isNotEmpty) {
-                    age =
-                        int.tryParse(_ageController.text.trim());
+                    age = int.tryParse(_ageController.text.trim());
                   }
 
                   if (_weightController.text.trim().isNotEmpty) {
@@ -205,8 +204,7 @@ class _ProfilePageContentState extends State<_ProfilePageContent> {
                   if (mounted && vm.errorMessage == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content:
-                        Text('Perfil salvo com sucesso!'),
+                        content: Text('Perfil salvo com sucesso!'),
                       ),
                     );
                   }

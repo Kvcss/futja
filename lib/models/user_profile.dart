@@ -21,6 +21,7 @@ class UserProfile {
 
   factory UserProfile.fromDocument(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
+
     return UserProfile(
       uid: doc.id,
       displayName: data['displayName'] as String?,
