@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:futja_app/models/match.dart';
-import 'package:futja_app/models/match_service.dart';
-import 'package:futja_app/models/storage_service.dart';
+import 'package:futja_app/services/match_service.dart';
+import 'package:futja_app/services/storage_service.dart';
 import 'package:futja_app/viewmodels/match_form_view_model.dart';
 
 class FakeMatchService implements IMatchService {

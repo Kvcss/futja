@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'match.dart';
+import '../models/match.dart';
 
 abstract class IMatchService {
   String newMatchId();

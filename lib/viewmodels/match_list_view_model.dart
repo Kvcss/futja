@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../models/match.dart';
-import '../models/match_service.dart';
+import '../services/match_service.dart';
 
 class MatchListViewModel extends ChangeNotifier {
   final IMatchService matchService;

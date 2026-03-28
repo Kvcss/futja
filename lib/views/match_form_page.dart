@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../models/match_service.dart';
-import '../models/storage_service.dart';
+import '../services/match_service.dart';
+import '../services/storage_service.dart';
 import '../viewmodels/auth_view_model.dart';
 import '../viewmodels/match_form_view_model.dart';
 import '../widgets/match_form_widget.dart';

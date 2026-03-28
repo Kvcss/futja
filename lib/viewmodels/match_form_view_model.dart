@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 import '../models/match.dart';
-import '../models/match_service.dart';
-import '../models/storage_service.dart';
+import '../services/match_service.dart';
+import '../services/storage_service.dart';
 
 class MatchFormViewModel extends ChangeNotifier {
   final IMatchService matchService;

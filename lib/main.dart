@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'app.dart';
-import 'models/match_service.dart';
-import 'models/storage_service.dart';
+import 'services/match_service.dart';
+import 'services/storage_service.dart';
 import 'services/auth_service.dart';
 import 'services/profile_service.dart';
 import 'viewmodels/auth_view_model.dart';

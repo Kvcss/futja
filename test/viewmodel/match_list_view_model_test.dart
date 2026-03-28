@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:futja_app/models/match.dart';
-import 'package:futja_app/models/match_service.dart';
+import 'package:futja_app/services/match_service.dart';
 import 'package:futja_app/viewmodels/match_list_view_model.dart';
 
 class FakeMatchListService implements IMatchService {

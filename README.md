@@ -1,104 +1,183 @@
 # FutJá ⚽
 
 > Encontre a partida perfeita!  
-> App mobile em Flutter para conectar pessoas que querem jogar futebol com partidas próximas.
+> Aplicativo mobile em Flutter para conectar pessoas que querem jogar futebol com partidas próximas.
+
+---
+
+## 📌 Informações da Entrega
+
+- **Aluno:** [SEU_NOME]
+- **Repositório GitHub:** [COLE_AQUI_O_LINK_DO_GITHUB]
+- **Vídeo demonstrativo no YouTube:** [COLE_AQUI_O_LINK_DO_VIDEO_YOUTUBE]
+
+> Observação: caso o repositório esteja privado, ele deve ser compartilhado com o usuário **mjoselli**, conforme solicitado no enunciado do trabalho.
 
 ---
 
 ## 📚 Sumário
 
 - [Sobre o projeto](#-sobre-o-projeto)
+- [Objetivo](#-objetivo)
 - [Funcionalidades](#-funcionalidades)
+- [Telas do aplicativo](#-telas-do-aplicativo)
 - [Arquitetura e tecnologias](#-arquitetura-e-tecnologias)
 - [Estrutura de pastas](#-estrutura-de-pastas)
+- [Como os requisitos do trabalho foram atendidos](#-como-os-requisitos-do-trabalho-foram-atendidos)
+- [Design Patterns utilizados](#-design-patterns-utilizados)
+- [Injeção de Dependência](#-injeção-de-dependência)
+- [Testes unitários](#-testes-unitários)
 - [Pré-requisitos](#-pré-requisitos)
 - [Configuração do Firebase](#-configuração-do-firebase)
 - [Executando o projeto](#-executando-o-projeto)
 - [Banco de dados (Cloud Firestore)](#-banco-de-dados-cloud-firestore)
 - [Notificações push (FCM)](#-notificações-push-fcm)
-- [Roadmap](#-roadmap)
-- [Contribuindo](#-contribuindo)
-- [Contato](#-contato)
+- [Melhorias futuras](#-melhorias-futuras)
+- [Conclusão](#-conclusão)
 
 ---
 
 ## 🔎 Sobre o projeto
 
-O **FutJá** é um aplicativo mobile que facilita a organização e a participação em partidas de futebol amador.
+O **FutJá** é um aplicativo mobile desenvolvido em **Flutter** com o objetivo de facilitar a organização e a participação em partidas de futebol amador.
 
-Com ele, o usuário pode:
+A proposta do app é conectar pessoas que querem jogar futebol com partidas disponíveis em sua cidade, permitindo que os usuários encontrem jogos, criem novas partidas, confirmem presença, visualizem detalhes da partida e gerenciem seu próprio perfil.
 
-- Entrar com e-mail e senha.
-- Criar partidas com foto, local, data, hora, cidade, nível técnico e número de vagas.
-- Ver partidas disponíveis por cidade.
-- Confirmar presença ou sair da partida.
-- Cancelar partidas que ele mesmo organizou.
-- Receber notificações push (FCM) de eventos importantes (estrutura pronta no app).
+O projeto foi desenvolvido utilizando **Flutter + Firebase**, com arquitetura baseada em **MVVM**, gerenciamento de estado com **Provider** e separação entre telas, viewmodels e serviços para melhorar organização, legibilidade e manutenção do código.
+
+---
+
+## 🎯 Objetivo
+
+O principal objetivo do aplicativo é oferecer uma experiência simples e funcional para:
+
+- organizar partidas de futebol amador;
+- permitir a criação de jogos com informações completas;
+- facilitar a busca por partidas disponíveis por cidade;
+- permitir a entrada e saída de participantes de forma dinâmica;
+- disponibilizar uma estrutura preparada para notificações push com Firebase Cloud Messaging.
+
+Além do objetivo funcional, o projeto também foi desenvolvido para atender aos requisitos acadêmicos de:
+- arquitetura de software;
+- clean code;
+- design patterns;
+- dependency injection;
+- testes unitários;
+- interface funcional com múltiplas telas.
 
 ---
 
 ## ✅ Funcionalidades
 
 ### Autenticação
-
-- Login e cadastro com **Firebase Auth** (e-mail/senha).
-- Estado de autenticação gerenciado por `AuthViewModel`.
-- Armazenamento do token FCM do usuário na coleção `users` para futuros envios de notificações.
+- Cadastro com **e-mail e senha** usando Firebase Authentication.
+- Login com **e-mail e senha**.
+- Controle do estado de autenticação com `AuthViewModel`.
+- Logout do usuário.
+- Salvamento do token FCM do usuário para futuras notificações.
 
 ### Partidas
+- Listagem de partidas futuras.
+- Filtro de partidas por cidade.
+- Exibição de informações resumidas em cards:
+  - nome da partida;
+  - local;
+  - data e horário;
+  - nível técnico;
+  - número de vagas disponíveis;
+  - foto do local, quando cadastrada.
 
-- Listagem de partidas futuras, filtradas por cidade.
-- Cartão com:
-    - Nome da partida
-    - Local
-    - Data e horário formatados
-    - Nível técnico
-    - Vagas disponíveis (`spotsLeft/maxPlayers`)
-    - Foto da quadra/clube (opcional)
-- Criação de partidas:
-    - Cidade (dropdown com cidades pré-definidas)
-    - Local
-    - Nome da partida
-    - Data e horário
-    - Nível técnico (iniciante, intermediário, avançado)
-    - Número de vagas
-    - Upload de imagem para **Firebase Storage**
-- Detalhes da partida:
-    - Informações completas da partida
-    - Lista de jogadores confirmados
-    - Ação para **entrar** ou **sair** da partida
-    - Organizador pode **cancelar** a partida
+### Criação de partidas
+- Criação de partidas com:
+  - nome da partida;
+  - cidade;
+  - local;
+  - data e horário;
+  - nível técnico;
+  - número de vagas;
+  - imagem opcional do local.
+- Upload de imagem para o **Firebase Storage**.
+- Persistência dos dados da partida no **Cloud Firestore**.
+
+### Detalhes da partida
+- Visualização completa de uma partida.
+- Exibição da lista de jogadores confirmados.
+- Entrada e saída da partida.
+- Cancelamento da partida pelo organizador.
+
+### Perfil do usuário
+- Edição de:
+  - nome;
+  - posição em que joga;
+  - idade;
+  - peso;
+  - foto de perfil.
+- Salvamento das informações do perfil no Firestore.
+- Upload da foto de perfil no Firebase Storage.
 
 ### Notificações
+- Inicialização do Firebase Messaging.
+- Configuração para receber notificações:
+  - em foreground;
+  - em background;
+  - com o app encerrado.
+- Estrutura pronta para o envio futuro de notificações aos usuários.
 
-- Inicialização do **Firebase Messaging**.
-- Registro de handler para mensagens em:
-    - Foreground
-    - Background
-    - App fechado (terminated)
-- Salvamento dos tokens FCM dos usuários na coleção `users`.
+---
+
+## 📱 Telas do aplicativo
+
+O aplicativo possui mais de 3 telas funcionais, atendendo ao requisito do trabalho.
+
+### 1. Splash Screen
+Tela inicial exibida ao abrir o aplicativo.
+
+### 2. Login / Cadastro
+Tela de autenticação com e-mail e senha.
+
+### 3. Home
+Tela principal do app, com:
+- aba para visualizar partidas;
+- aba para criar partidas;
+- menu lateral com acesso ao perfil e logout.
+
+### 4. Detalhes da partida
+Tela com informações completas da partida e ações de participação.
+
+### 5. Perfil
+Tela para edição de dados do usuário.
+
+### 6. Criar partida
+Tela dedicada para cadastro de uma nova partida.
 
 ---
 
 ## 🧱 Arquitetura e tecnologias
 
-- **Framework:** Flutter
-- **Linguagem:** Dart
-- **Arquitetura:** MVVM simples com `ChangeNotifier`
-- **Gerenciamento de estado:** `provider`
-- **Backend as a Service:** Firebase
-    - `firebase_core`
-    - `firebase_auth`
-    - `cloud_firestore`
-    - `firebase_storage`
-    - `firebase_messaging`
-- **Outros pacotes:**
-    - `image_picker` (upload de imagem da galeria)
-- **Camadas principais:**
-    - `models/` → entidades e serviços de acesso a dados
-    - `viewmodels/` → lógica de apresentação (Auth, MatchList, MatchForm)
-    - `views/` → telas (login, home, detalhes, formulário)
-    - `core/` → tema e estilos globais
+### Tecnologias utilizadas
+- **Flutter**
+- **Dart**
+- **Provider**
+- **Firebase Core**
+- **Firebase Auth**
+- **Cloud Firestore**
+- **Firebase Storage**
+- **Firebase Messaging**
+- **Image Picker**
+
+### Arquitetura adotada
+O projeto utiliza uma arquitetura **MVVM (Model-View-ViewModel)**, organizada da seguinte forma:
+
+- **View**: telas da aplicação;
+- **ViewModel**: gerenciamento de estado e lógica de apresentação;
+- **Model / Service**: entidades e acesso a dados.
+
+Essa arquitetura foi escolhida para melhorar:
+- organização do projeto;
+- separação de responsabilidades;
+- legibilidade;
+- manutenção;
+- testabilidade.
 
 ---
 
@@ -107,22 +186,38 @@ Com ele, o usuário pode:
 ```text
 lib/
 ├─ core/
-│  └─ app_theme.dart          # Cores e tema da aplicação
+│  ├─ app_constants.dart
+│  ├─ app_theme.dart
+│  ├─ auth_error_mapper.dart
+│  ├─ date_time_formatter.dart
+│  └─ form_validators.dart
+│
 ├─ models/
-│  ├─ app_user.dart           # Modelo de usuário
-│  ├─ match.dart              # Modelo de partida (Match)
-│  ├─ match_service.dart      # Acesso ao Firestore (matches)
-│  └─ storage_service.dart    # Upload de imagens no Firebase Storage
+│  ├─ app_user.dart
+│  ├─ match.dart
+│  ├─ match_service.dart
+│  ├─ storage_service.dart
+│  └─ user_profile.dart
+│
 ├─ services/
-│  └─ auth_service.dart       # Encapsula FirebaseAuth
+│  ├─ auth_service.dart
+│  └─ profile_service.dart
+│
 ├─ viewmodels/
-│  ├─ auth_view_model.dart    # Estado de autenticação + FCM
+│  ├─ auth_view_model.dart
 │  ├─ match_form_view_model.dart
-│  └─ match_list_view_model.dart
+│  ├─ match_list_view_model.dart
+│  └─ profile_view_model.dart
+│
 ├─ views/
-│  ├─ login_page.dart
 │  ├─ home_page.dart
+│  ├─ login_page.dart
 │  ├─ match_detail_page.dart
-│  └─ match_form_page.dart
-├─ app.dart                   # MyApp, SplashPage e AuthGate
-└─ main.dart                  # bootstrap + Firebase + FCM
+│  ├─ match_form_page.dart
+│  └─ profile_page.dart
+│
+├─ widgets/
+│  └─ match_form_widget.dart
+│
+├─ app.dart
+└─ main.dart

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../core/date_time_formatter.dart';
 import '../models/match.dart';
-import '../models/match_service.dart';
+import '../services/match_service.dart';
 import '../models/user_profile.dart';
 import '../services/profile_service.dart';
 import '../viewmodels/auth_view_model.dart';
