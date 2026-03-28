@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -8,6 +9,9 @@ import '../services/storage_service.dart';
 
 class MatchFormViewModel extends ChangeNotifier {
   final IMatchService matchService;
+
+  // Mantido no construtor só para não quebrar as telas que já passam isso.
+  // Pode remover depois se quiser limpar o projeto.
   final IStorageService storageService;
 
   bool _isSaving = false;
@@ -39,9 +43,19 @@ class MatchFormViewModel extends ChangeNotifier {
     try {
       final matchId = matchService.newMatchId();
 
-      String? imageUrl;
+      String? imageBase64;
+
       if (imageFile != null) {
-        imageUrl = await storageService.uploadMatchImage(matchId, imageFile);
+        final bytes = await imageFile.readAsBytes();
+
+        // Limite de segurança para não estourar o documento do Firestore.
+        if (bytes.length > 450 * 1024) {
+          throw Exception(
+            'A imagem ficou muito grande. Escolha uma imagem menor.',
+          );
+        }
+
+        imageBase64 = base64Encode(bytes);
       }
 
       final match = Match(
@@ -54,15 +68,18 @@ class MatchFormViewModel extends ChangeNotifier {
         maxPlayers: maxPlayers,
         organizerId: organizerId,
         organizerName: organizerName,
-        imageUrl: imageUrl,
+        imageUrl: null,
+        imageBase64: imageBase64,
         participants: const [],
       );
 
       await matchService.createMatch(match);
-
       return true;
-    } catch (_) {
-      _errorMessage = 'Erro ao criar partida. Tente novamente.';
+    } catch (e) {
+      _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      if (_errorMessage == null || _errorMessage!.trim().isEmpty) {
+        _errorMessage = 'Erro ao criar partida. Tente novamente.';
+      }
       return false;
     } finally {
       _isSaving = false;

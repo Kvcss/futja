@@ -6,6 +6,7 @@ class Match {
   final String city;
   final String locationName;
   final String? imageUrl;
+  final String? imageBase64;
   final DateTime dateTime;
   final String level;
   final int maxPlayers;
@@ -25,6 +26,7 @@ class Match {
     required this.organizerId,
     this.organizerName,
     this.imageUrl,
+    this.imageBase64,
     required this.participants,
     this.cancelled = false,
   });
@@ -44,6 +46,7 @@ class Match {
       city: data['city'] as String? ?? '',
       locationName: data['locationName'] as String? ?? '',
       imageUrl: data['imageUrl'] as String?,
+      imageBase64: data['imageBase64'] as String?,
       dateTime: (data['dateTime'] as Timestamp).toDate(),
       level: data['level'] as String? ?? 'intermediário',
       maxPlayers: (data['maxPlayers'] as num?)?.toInt() ?? 10,
@@ -62,6 +65,7 @@ class Match {
       'city': city,
       'locationName': locationName,
       'imageUrl': imageUrl,
+      'imageBase64': imageBase64,
       'dateTime': Timestamp.fromDate(dateTime),
       'level': level,
       'maxPlayers': maxPlayers,

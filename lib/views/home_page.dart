@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -130,8 +132,6 @@ class _HomePageContent extends StatelessWidget {
 }
 
 class _HomeTabs extends StatelessWidget {
-  const _HomeTabs();
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -220,7 +220,8 @@ class _MatchesTab extends StatelessWidget {
                 itemCount: matchViewModel.matches.length,
                 itemBuilder: (context, index) {
                   final match = matchViewModel.matches[index];
-                  final isOrganizer = user != null && user.uid == match.organizerId;
+                  final isOrganizer =
+                      user != null && user.uid == match.organizerId;
                   final isParticipant =
                       user != null && match.participants.contains(user.uid);
 
@@ -257,102 +258,248 @@ class _MatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => MatchDetailPage(
-              match: match,
-              isOrganizer: isOrganizer,
-              isParticipant: isParticipant,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-          color: Colors.white,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
-              child: match.imageUrl != null
-                  ? Image.network(
-                match.imageUrl!,
-                height: 120,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              )
-                  : Container(
-                height: 120,
-                color: Colors.grey[200],
-                child: const Center(
-                  child: Text(
-                    'Foto do local',
-                    style: TextStyle(color: AppColors.greyText),
-                  ),
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Material(
+        color: Colors.white,
+        elevation: 2,
+        shadowColor: Colors.black.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => MatchDetailPage(
+                  match: match,
+                  isOrganizer: isOrganizer,
+                  isParticipant: isParticipant,
                 ),
               ),
-            ),
-            const Divider(height: 1, color: AppColors.border),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 10,
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            );
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Stack(
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          match.title,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          match.locationName,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.greyText,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          '$formattedDate   ${match.level}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.greyText,
-                          ),
-                        ),
-                      ],
+                  Hero(
+                    tag: 'match-image-${match.id}',
+                    child: _MatchCoverImage(
+                      imageUrl: match.imageUrl,
+                      imageBase64: match.imageBase64,
+                      height: 160,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(20),
+                      ),
                     ),
                   ),
-                  Text(
-                    'Vagas: ${match.spotsLeft}/${match.maxPlayers}',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.92),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        '${match.spotsLeft}/${match.maxPlayers} vagas',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      match.title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 16,
+                          color: AppColors.greyText,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            match.locationName,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.greyText,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _InfoChip(
+                          icon: Icons.calendar_today_outlined,
+                          label: formattedDate,
+                        ),
+                        _InfoChip(
+                          icon: Icons.sports_soccer_outlined,
+                          label: match.level,
+                        ),
+                        _InfoChip(
+                          icon: Icons.location_city_outlined,
+                          label: match.city,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _MatchCoverImage extends StatelessWidget {
+  final String? imageUrl;
+  final String? imageBase64;
+  final double height;
+  final BorderRadius borderRadius;
+
+  const _MatchCoverImage({
+    required this.imageUrl,
+    required this.imageBase64,
+    required this.height,
+    required this.borderRadius,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasNetworkImage = imageUrl != null && imageUrl!.trim().isNotEmpty;
+    final hasBase64Image =
+        imageBase64 != null && imageBase64!.trim().isNotEmpty;
+
+    if (hasBase64Image) {
+      return ClipRRect(
+        borderRadius: borderRadius,
+        child: Image.memory(
+          base64Decode(imageBase64!),
+          height: height,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) {
+            return _fallbackContainer(height);
+          },
+        ),
+      );
+    }
+
+    if (hasNetworkImage) {
+      return ClipRRect(
+        borderRadius: borderRadius,
+        child: Image.network(
+          imageUrl!,
+          height: height,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Container(
+              height: height,
+              color: Colors.grey[200],
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          },
+          errorBuilder: (_, __, ___) {
+            return _fallbackContainer(height);
+          },
+        ),
+      );
+    }
+
+    return _fallbackContainer(height);
+  }
+
+  Widget _fallbackContainer(double height) {
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: Container(
+        height: height,
+        color: Colors.grey[200],
+        child: const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.image_outlined,
+                size: 34,
+                color: AppColors.greyText,
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Foto do local',
+                style: TextStyle(color: AppColors.greyText),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _InfoChip({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F6F8),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: AppColors.greyText),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

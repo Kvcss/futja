@@ -75,14 +75,19 @@ class _MatchFormWidgetState extends State<MatchFormWidget> {
   }
 
   Future<void> _pickImage() async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 35,
+      maxWidth: 900,
+      maxHeight: 900,
+    );
+
     if (picked == null) return;
 
     setState(() {
       _selectedImage = File(picked.path);
     });
   }
-
   Future<void> _pickDateTime() async {
     final now = DateTime.now();
 
