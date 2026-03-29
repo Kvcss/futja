@@ -8,7 +8,6 @@
 ## 📌 Informações
 
 - **Aluno:** Kaio Vinicius Corredor da Silva
-- **Repositório GitHub:** [COLE_AQUI_O_LINK_DO_GITHUB]
 - **Vídeo demonstrativo no YouTube:** https://www.youtube.com/watch?v=y-C73NpZy7Y
 
 ---
