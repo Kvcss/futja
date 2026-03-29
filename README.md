@@ -21,13 +21,7 @@
 - [Arquitetura e tecnologias](#-arquitetura-e-tecnologias)
 - [Estrutura de pastas](#-estrutura-de-pastas)
 - [Aplicação dos requisitos](#-aplicação-dos-requisitos)
-- [Design Patterns utilizados](#-design-patterns-utilizados)
 - [Injeção de Dependência](#-injeção-de-dependência)
-- [Testes unitários](#-testes-unitários)
-- [Pré-requisitos](#-pré-requisitos)
-- [Configuração do Firebase](#-configuração-do-firebase)
-- [Executando o projeto](#-executando-o-projeto)
-- [Conclusão](#-conclusão)
 
 ---
 
