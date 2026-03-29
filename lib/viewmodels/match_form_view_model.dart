@@ -10,8 +10,6 @@ import '../services/storage_service.dart';
 class MatchFormViewModel extends ChangeNotifier {
   final IMatchService matchService;
 
-  // Mantido no construtor só para não quebrar as telas que já passam isso.
-  // Pode remover depois se quiser limpar o projeto.
   final IStorageService storageService;
 
   bool _isSaving = false;

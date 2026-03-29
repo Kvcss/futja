@@ -7,9 +7,8 @@
 
 ## 📌 Informações
 
-- **Aluno:** [SEU_NOME]
-- **Repositório GitHub:** [COLE_AQUI_O_LINK_DO_GITHUB]
-- **Vídeo demonstrativo no YouTube:** [COLE_AQUI_O_LINK_DO_VIDEO_YOUTUBE]
+- **Aluno:** [Kaio Vinicius Corredor da Silva]
+- **Vídeo demonstrativo no YouTube:** [https://www.youtube.com/watch?v=y-C73NpZy7Y]
 
 ---
 
@@ -52,7 +51,7 @@ O principal objetivo do aplicativo é oferecer uma experiência simples e funcio
 - permitir a criação de jogos com informações completas;
 - facilitar a busca por partidas disponíveis por cidade;
 - permitir a entrada e saída de participantes de forma dinâmica;
-- disponibilizar uma estrutura preparada para notificações push com Firebase Cloud Messaging.
+
 
 ---
 
@@ -104,16 +103,6 @@ O principal objetivo do aplicativo é oferecer uma experiência simples e funcio
 - Salvamento das informações do perfil no Firestore.
 - Upload da foto de perfil no Firebase Storage.
 
-### Notificações
-- Inicialização do Firebase Messaging.
-- Configuração para receber notificações:
-  - em foreground;
-  - em background;
-  - com o app encerrado.
-- Estrutura pronta para o envio futuro de notificações aos usuários.
-
----
-
 ## 📱 Telas do aplicativo
 
 O aplicativo possui múltiplas telas funcionais para diferentes fluxos de uso.
@@ -149,9 +138,6 @@ Tela dedicada para cadastro de uma nova partida.
 - **Provider**
 - **Firebase Core**
 - **Firebase Auth**
-- **Cloud Firestore**
-- **Firebase Storage**
-- **Firebase Messaging**
 - **Image Picker**
 
 ### Arquitetura adotada
