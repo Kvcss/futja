@@ -177,6 +177,82 @@ O fluxo principal da aplicação segue esta estrutura:
 
 Essa organização ajuda a manter o projeto mais limpo, modular e fácil de evoluir.
 
+## 🔌 Injeção de Dependência
+
+A injeção de dependência no projeto foi implementada com **Provider**, utilizando `MultiProvider` no arquivo `main.dart`.
+
+No ponto de entrada da aplicação, as dependências principais são registradas de forma global. Isso permite que os serviços e ViewModels sejam disponibilizados para toda a árvore de widgets sem que precisem ser instanciados manualmente em cada tela.
+
+### Dependências registradas
+
+No `main.dart`, são registradas dependências como:
+
+- `IAuthService`
+- `IMatchService`
+- `IStorageService`
+- `IProfileService`
+- `AuthViewModel`
+
+Essas dependências são disponibilizadas através do `Provider` e depois consumidas nas telas e nos widgets com `context.read()`, `context.watch()` e `Consumer`.
+
+### Como a injeção de dependência funciona no projeto
+
+O fluxo da injeção de dependência acontece da seguinte forma:
+
+1. O app inicia no `main.dart`;
+2. o `MultiProvider` registra as dependências principais;
+3. essas dependências ficam disponíveis para a aplicação;
+4. as telas acessam essas dependências com `context.read()` ou `context.watch()`;
+5. os ViewModels recebem os serviços via construtor;
+6. os ViewModels utilizam esses serviços para executar autenticação, leitura e escrita de dados.
+
+### Aplicação prática no projeto
+
+#### Autenticação
+- `main.dart` registra `IAuthService`;
+- `AuthViewModel` recebe `IAuthService` no construtor;
+- `LoginPage` consome `AuthViewModel` para executar login e cadastro.
+
+Nesse fluxo, a tela não acessa o Firebase diretamente.  
+Ela delega a ação para o ViewModel, que por sua vez utiliza o serviço injetado.
+
+#### Lista de partidas
+- `HomePage` acessa `IMatchService`;
+- `MatchListViewModel` recebe `IMatchService` no construtor;
+- o ViewModel utiliza esse serviço para carregar, filtrar e observar partidas.
+
+#### Criação de partidas
+- `MatchFormViewModel` recebe `IMatchService` e `IStorageService`;
+- a lógica de criação da partida fica concentrada no ViewModel;
+- a tela apenas envia os dados preenchidos no formulário.
+
+#### Perfil
+- `ProfileViewModel` recebe `IProfileService`;
+- a tela de perfil não conhece os detalhes de persistência;
+- o ViewModel delega a leitura e a gravação dos dados ao serviço injetado.
+
+### Por que isso é injeção de dependência
+
+No projeto, os ViewModels **não criam diretamente** os serviços que utilizam.  
+Em vez disso, essas dependências são fornecidas de fora para dentro da aplicação.
+
+Isso caracteriza injeção de dependência porque:
+- a classe não depende da criação manual da dependência;
+- a dependência é recebida externamente;
+- a responsabilidade de montagem do objeto fica centralizada na configuração da aplicação.
+
+### Benefícios obtidos
+
+A aplicação dessa abordagem trouxe os seguintes benefícios:
+
+- redução de acoplamento entre classes;
+- maior modularidade;
+- melhor organização do projeto;
+- facilidade de manutenção;
+- facilidade para testes unitários;
+- possibilidade de trocar implementações com menos impacto.
+
+Em resumo, a injeção de dependência no projeto foi aplicada para desacoplar os ViewModels da criação direta dos serviços, deixando a arquitetura mais limpa, mais organizada e mais fácil de evoluir.
 ---
 
 ## 📁 Estrutura de pastas
