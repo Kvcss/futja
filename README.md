@@ -8,6 +8,7 @@
 ## 📌 Informações
 
 - **Aluno:** Kaio Vinicius Corredor da Silva
+- **Repositório GitHub:** [COLE_AQUI_O_LINK_DO_GITHUB]
 - **Vídeo demonstrativo no YouTube:** https://www.youtube.com/watch?v=y-C73NpZy7Y
 
 ---
@@ -20,6 +21,7 @@
 - [Telas do aplicativo](#-telas-do-aplicativo)
 - [Arquitetura e tecnologias](#-arquitetura-e-tecnologias)
 - [Estrutura de pastas](#-estrutura-de-pastas)
+- [Aplicação dos requisitos](#-aplicação-dos-requisitos)
 - [Design Patterns utilizados](#-design-patterns-utilizados)
 - [Injeção de Dependência](#-injeção-de-dependência)
 - [Testes unitários](#-testes-unitários)
@@ -51,7 +53,7 @@ O principal objetivo do aplicativo é oferecer uma experiência simples e funcio
 - permitir a criação de jogos com informações completas;
 - facilitar a busca por partidas disponíveis por cidade;
 - permitir a entrada e saída de participantes de forma dinâmica;
-- gerenciar perfil do usuário;
+- gerenciar o perfil do usuário;
 - manter uma estrutura preparada para notificações push com Firebase Cloud Messaging.
 
 ---
@@ -87,7 +89,7 @@ O principal objetivo do aplicativo é oferecer uma experiência simples e funcio
   - número de vagas;
   - imagem opcional do local.
 - Persistência dos dados da partida no **Cloud Firestore**.
-- Estratégia de salvamento de imagem desacoplada na camada de serviço.
+- Estratégia de salvamento de imagem desacoplada da interface.
 
 ### Detalhes da partida
 - Visualização completa de uma partida.
@@ -106,6 +108,15 @@ O principal objetivo do aplicativo é oferecer uma experiência simples e funcio
 - Salvamento das informações do perfil no Firestore.
 - Exibição da foto do usuário na interface.
 
+### Notificações
+- Inicialização do Firebase Messaging.
+- Configuração para receber notificações:
+  - em foreground;
+  - em background;
+  - com o app encerrado.
+- Estrutura pronta para futuras notificações relacionadas às partidas.
+
+---
 
 ## 📱 Telas do aplicativo
 
@@ -149,27 +160,22 @@ Tela dedicada para cadastro de uma nova partida.
 ### Arquitetura adotada
 O projeto utiliza uma arquitetura **MVVM (Model-View-ViewModel)**, organizada da seguinte forma:
 
-- **View**: telas da aplicação;
-- **ViewModel**: gerenciamento de estado e lógica de apresentação;
-- **Model**: entidades de domínio;
-- **Service**: acesso a dados e integração com Firebase.
+- **View**: telas e widgets responsáveis pela interface;
+- **ViewModel**: classes responsáveis pelo estado e pela lógica de apresentação;
+- **Model**: entidades de domínio da aplicação;
+- **Service**: camada responsável pela integração com Firebase e persistência dos dados.
 
 ### Organização da arquitetura
-O fluxo principal do projeto acontece assim:
+O fluxo principal da aplicação segue esta estrutura:
 
 **View → ViewModel → Service → Firebase**
 
-- A **View** exibe a interface e dispara ações do usuário.
-- O **ViewModel** controla estado, loading, mensagens de erro e regras da tela.
-- O **Service** encapsula o acesso ao Firebase e centraliza operações de autenticação, perfil e partidas.
+- A **View** exibe dados e captura interações do usuário.
+- O **ViewModel** controla estado, loading, mensagens de erro e regras de fluxo.
+- O **Service** concentra operações externas, como autenticação, leitura e escrita no banco.
 - Os **Models** representam os dados utilizados na aplicação.
 
-Essa separação melhora:
-- organização do projeto;
-- legibilidade;
-- manutenção;
-- reaproveitamento de código;
-- testabilidade.
+Essa organização ajuda a manter o projeto mais limpo, modular e fácil de evoluir.
 
 ---
 
