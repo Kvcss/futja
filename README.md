@@ -27,9 +27,6 @@
 - [Pré-requisitos](#-pré-requisitos)
 - [Configuração do Firebase](#-configuração-do-firebase)
 - [Executando o projeto](#-executando-o-projeto)
-- [Banco de dados (Cloud Firestore)](#-banco-de-dados-cloud-firestore)
-- [Notificações push (FCM)](#-notificações-push-fcm)
-- [Melhorias futuras](#-melhorias-futuras)
 - [Conclusão](#-conclusão)
 
 ---
