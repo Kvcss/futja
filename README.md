@@ -7,8 +7,8 @@
 
 ## 📌 Informações
 
-- **Aluno:** [Kaio Vinicius Corredor da Silva]
-- **Vídeo demonstrativo no YouTube:** [https://www.youtube.com/watch?v=y-C73NpZy7Y]
+- **Aluno:** Kaio Vinicius Corredor da Silva
+- **Vídeo demonstrativo no YouTube:** https://www.youtube.com/watch?v=y-C73NpZy7Y
 
 ---
 
@@ -35,11 +35,11 @@
 
 ## 🔎 Sobre o projeto
 
-O **FutJá** é um aplicativo mobile desenvolvido em **Flutter** com o objetivo de facilitar a organização e a participação em partidas de futebol amador.
+O **FutJá** é um aplicativo mobile desenvolvido em **Flutter** para facilitar a organização e a participação em partidas de futebol amador.
 
 A proposta do app é conectar pessoas que querem jogar futebol com partidas disponíveis em sua cidade, permitindo que os usuários encontrem jogos, criem novas partidas, confirmem presença, visualizem detalhes da partida e gerenciem seu próprio perfil.
 
-O projeto foi desenvolvido utilizando **Flutter + Firebase**, com arquitetura baseada em **MVVM**, gerenciamento de estado com **Provider** e separação entre telas, viewmodels e serviços para melhorar organização, legibilidade e manutenção do código.
+O projeto foi estruturado com **Flutter + Firebase**, utilizando **MVVM**, `Provider` para gerenciamento de estado e injeção de dependência, além de uma separação clara entre interface, lógica de apresentação e acesso aos dados.
 
 ---
 
@@ -51,7 +51,8 @@ O principal objetivo do aplicativo é oferecer uma experiência simples e funcio
 - permitir a criação de jogos com informações completas;
 - facilitar a busca por partidas disponíveis por cidade;
 - permitir a entrada e saída de participantes de forma dinâmica;
-
+- gerenciar perfil do usuário;
+- manter uma estrutura preparada para notificações push com Firebase Cloud Messaging.
 
 ---
 
@@ -63,6 +64,7 @@ O principal objetivo do aplicativo é oferecer uma experiência simples e funcio
 - Controle do estado de autenticação com `AuthViewModel`.
 - Logout do usuário.
 - Salvamento do token FCM do usuário para futuras notificações.
+- Criação e atualização do documento do usuário na coleção `users`.
 
 ### Partidas
 - Listagem de partidas futuras.
@@ -73,7 +75,7 @@ O principal objetivo do aplicativo é oferecer uma experiência simples e funcio
   - data e horário;
   - nível técnico;
   - número de vagas disponíveis;
-  - foto do local, quando cadastrada.
+  - imagem do local, quando cadastrada.
 
 ### Criação de partidas
 - Criação de partidas com:
@@ -84,14 +86,15 @@ O principal objetivo do aplicativo é oferecer uma experiência simples e funcio
   - nível técnico;
   - número de vagas;
   - imagem opcional do local.
-- Upload de imagem para o **Firebase Storage**.
 - Persistência dos dados da partida no **Cloud Firestore**.
+- Estratégia de salvamento de imagem desacoplada na camada de serviço.
 
 ### Detalhes da partida
 - Visualização completa de uma partida.
 - Exibição da lista de jogadores confirmados.
 - Entrada e saída da partida.
 - Cancelamento da partida pelo organizador.
+- Exibição do nome e da foto do usuário confirmado quando disponíveis.
 
 ### Perfil do usuário
 - Edição de:
@@ -101,7 +104,8 @@ O principal objetivo do aplicativo é oferecer uma experiência simples e funcio
   - peso;
   - foto de perfil.
 - Salvamento das informações do perfil no Firestore.
-- Upload da foto de perfil no Firebase Storage.
+- Exibição da foto do usuário na interface.
+
 
 ## 📱 Telas do aplicativo
 
@@ -138,6 +142,8 @@ Tela dedicada para cadastro de uma nova partida.
 - **Provider**
 - **Firebase Core**
 - **Firebase Auth**
+- **Cloud Firestore**
+- **Firebase Messaging**
 - **Image Picker**
 
 ### Arquitetura adotada
@@ -145,13 +151,24 @@ O projeto utiliza uma arquitetura **MVVM (Model-View-ViewModel)**, organizada da
 
 - **View**: telas da aplicação;
 - **ViewModel**: gerenciamento de estado e lógica de apresentação;
-- **Model / Service**: entidades e acesso a dados.
+- **Model**: entidades de domínio;
+- **Service**: acesso a dados e integração com Firebase.
 
-Essa arquitetura foi escolhida para melhorar:
+### Organização da arquitetura
+O fluxo principal do projeto acontece assim:
+
+**View → ViewModel → Service → Firebase**
+
+- A **View** exibe a interface e dispara ações do usuário.
+- O **ViewModel** controla estado, loading, mensagens de erro e regras da tela.
+- O **Service** encapsula o acesso ao Firebase e centraliza operações de autenticação, perfil e partidas.
+- Os **Models** representam os dados utilizados na aplicação.
+
+Essa separação melhora:
 - organização do projeto;
-- separação de responsabilidades;
 - legibilidade;
 - manutenção;
+- reaproveitamento de código;
 - testabilidade.
 
 ---
@@ -170,13 +187,13 @@ lib/
 ├─ models/
 │  ├─ app_user.dart
 │  ├─ match.dart
-│  ├─ match_service.dart
-│  ├─ storage_service.dart
 │  └─ user_profile.dart
 │
 ├─ services/
 │  ├─ auth_service.dart
-│  └─ profile_service.dart
+│  ├─ match_service.dart
+│  ├─ profile_service.dart
+│  └─ storage_service.dart
 │
 ├─ viewmodels/
 │  ├─ auth_view_model.dart
